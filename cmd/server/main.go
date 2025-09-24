@@ -10,12 +10,13 @@ import (
 
 func main() {
 
-	repo := postgres.NewMemoryRepo()
+	repo := postgres.NewUserRepository()
 	userService := service.NewUserService(repo)
 	userHandler := handlers.NewUserHandler(userService)
 
-	http.HandleFunc("/createUser", userHandler.CreateUser)
-	http.HandleFunc("/users/", userHandler.GetUser)
+	http.HandleFunc("/user", userHandler.CreateUser)   //TODO
+	http.HandleFunc("/user/", userHandler.GetUser)     //TODO
+	http.HandleFunc("/userUp", userHandler.UpdateUser) //TODO
 
 	log.Println("Server starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

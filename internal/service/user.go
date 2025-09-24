@@ -6,7 +6,8 @@ import (
 
 type repository interface {
 	CreateUser(u models.User) error
-	GetUser(id int64) (models.User, error)
+	GetUser(id int64) (*models.User, error)
+	UpdateUser(u models.User) error
 }
 
 type UserService struct {
@@ -18,9 +19,14 @@ func NewUserService(repo repository) *UserService {
 }
 
 func (s *UserService) CreateUser(u models.User) error {
+
 	return s.repo.CreateUser(u)
 }
 
-func (s *UserService) GetUser(id int64) (models.User, error) {
+func (s *UserService) GetUser(id int64) (*models.User, error) {
 	return s.repo.GetUser(id)
+}
+
+func (s *UserService) UpdateUser(u models.User) error {
+	return s.repo.UpdateUser(u)
 }

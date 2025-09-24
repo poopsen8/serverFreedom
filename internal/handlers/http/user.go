@@ -11,7 +11,8 @@ import (
 
 type service interface {
 	CreateUser(u models.User) error
-	GetUser(id int64) (models.User, error)
+	GetUser(id int64) (*models.User, error)
+	UpdateUser(user models.User) error
 }
 
 type UserHandler struct {
@@ -34,13 +35,11 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Проверяем что ID передан
 	if user.ID == 0 {
 		http.Error(w, "ID is required", http.StatusBadRequest)
 		return
 	}
 
-	// Создаем пользователя с указанным ID
 	err := h.serv.CreateUser(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -50,8 +49,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"id":   user.ID,
-		"name": user.Name,
+		"id": user.ID,
 	})
 }
 
@@ -76,4 +74,29 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
+}
+
+func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "PUT" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var user models.User
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	if user.ID == 0 {
+		http.Error(w, "ID is required", http.StatusBadRequest)
+		return
+	}
+
+	if err := h.serv.UpdateUser(user); err != nil {
+		http.Error(w, "ID is f", http.StatusBadRequest) //TODO
+	}
+
+	w.WriteHeader(http.StatusCreated)
+
 }
