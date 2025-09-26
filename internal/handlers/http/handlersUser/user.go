@@ -1,4 +1,4 @@
-package handlers
+package handlersUser
 
 import (
 	"encoding/json"
@@ -6,13 +6,15 @@ import (
 	"strconv"
 	"strings"
 
-	"userServer/internal/models"
+	"userServer/internal/models/modelUser"
 )
 
+//  TODO весь нахуй файл нуно снасить нахуй и переделовать нормально
+
 type service interface {
-	CreateUser(u models.User) error
-	GetUser(id int64) (*models.User, error)
-	UpdateUser(user models.User) error
+	Create(u modelUser.User) error
+	Get(id int64) (*modelUser.User, error)
+	Update(user modelUser.User) error
 }
 
 type UserHandler struct {
@@ -23,13 +25,13 @@ func NewUserHandler(s service) *UserHandler {
 	return &UserHandler{serv: s}
 }
 
-func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var user models.User
+	var user modelUser.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
@@ -40,7 +42,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.serv.CreateUser(user)
+	err := h.serv.Create(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -53,20 +55,20 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	path := strings.TrimPrefix(r.URL.Path, "/users/")
+	path := strings.TrimPrefix(r.URL.Path, "/get-user/") //TODO
 	id, err := strconv.ParseInt(path, 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
-	user, exists := h.serv.GetUser(id)
+	user, exists := h.serv.Get(id)
 	if exists != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
 		return
@@ -76,13 +78,13 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "PUT" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var user models.User
+	var user modelUser.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
@@ -93,7 +95,7 @@ func (h *UserHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.serv.UpdateUser(user); err != nil {
+	if err := h.serv.Update(user); err != nil {
 		http.Error(w, "ID is f", http.StatusBadRequest) //TODO
 	}
 
