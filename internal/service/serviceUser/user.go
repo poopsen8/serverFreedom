@@ -7,7 +7,7 @@ import (
 type repository interface {
 	Create(u modelUser.User) error
 	Get(id int64) (*modelUser.User, error)
-	Update(u modelUser.User) error
+	Update(u modelUser.User) error //TODO
 }
 
 type UserService struct {

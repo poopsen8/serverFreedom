@@ -1,4 +1,4 @@
-package serverOperetor
+package serviceOperetor
 
 import (
 	"userServer/internal/models/modelOperator"

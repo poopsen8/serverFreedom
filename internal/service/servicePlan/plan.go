@@ -4,16 +4,16 @@ import (
 	"userServer/internal/models/modelPlan"
 )
 
-type repository interface {
+type Repository interface {
 	Get(id int64) (*modelPlan.Plan, error)
 	GetAll() ([]*modelPlan.Plan, error)
 }
 
 type PlanService struct {
-	repo repository
+	repo Repository
 }
 
-func NewPlanService(repo repository) *PlanService {
+func NewPlanService(repo Repository) *PlanService {
 	return &PlanService{repo: repo}
 }
 
