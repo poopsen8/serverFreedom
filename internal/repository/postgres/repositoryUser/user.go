@@ -19,15 +19,15 @@ func NewUserRepository() *userRepository {
 }
 
 func (r *userRepository) Create(user modelUser.User) error {
-	query := `INSERT INTO users (id, username) VALUES ($1, $2) RETURNING id`
-	return r.db.QueryRow(query, user.ID, user.Username).Scan(&user.ID)
+	query := `INSERT INTO users (id, username , operator_id) VALUES ($1, $2, $3) RETURNING id`
+	return r.db.QueryRow(query, user.ID, user.Username, user.MobileOperatorID).Scan(&user.ID)
 }
 
-func (r *userRepository) Get(id int64) (*modelUser.User, error) {
+func (r *userRepository) Get(id int64) (*modelUser.FullUser, error) {
 
-	query := `SELECT username, create_at, mobile_operator, total_sum, is_trial FROM users WHERE id = $1`
-	user := &modelUser.User{}
-	r.db.QueryRow(query, id).Scan(&user.Username, &user.CreateAt, &user.MobileOperator, &user.TotalSum, &user.IsTrial)
+	query := `SELECT username, create_at, operator_id, total_sum, is_trial FROM users WHERE id = $1`
+	user := &modelUser.FullUser{}
+	r.db.QueryRow(query, id).Scan(&user.Username, &user.CreateAt, &user.MobileOperator.ID, &user.TotalSum, &user.IsTrial)
 	if user.Username == "" { //TODO
 		return nil, nil //TODO
 	}
@@ -42,9 +42,9 @@ func (r *userRepository) Update(user modelUser.User) error {
 		_, err := r.db.Exec(query, user.Username, user.ID)
 		return err
 	}
-	if user.MobileOperator != "" {
-		query := `UPDATE users SET mobile_operator = $1 WHERE id = $2`
-		_, err := r.db.Exec(query, user.MobileOperator, user.ID)
+	if user.ID != 0 {
+		query := `UPDATE users SET operator_id = $1 WHERE id = $2`
+		_, err := r.db.Exec(query, user.MobileOperatorID, user.ID)
 		return err
 	}
 	if !user.IsTrial {

@@ -35,6 +35,33 @@ func (r *SubscriptionRepository) Get(id int64) (*modelSubscription.FullSubscript
 	return u, nil
 }
 
+func (r *SubscriptionRepository) Delete(id int64) error {
+	query := `DELETE FROM subscriptions WHERE user_id = $1`
+	_, err := r.db.Exec(query, id)
+	return err
+}
+
+func (r *SubscriptionRepository) GetSubscriptionsForCheck() ([]*modelSubscription.Subscription, error) {
+	query := `SELECT user_id, expires_at FROM subscriptions WHERE key IS NOT NULL`
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var subscriptions []*modelSubscription.Subscription
+	for rows.Next() {
+		sub := &modelSubscription.Subscription{}
+		err := rows.Scan(&sub.User_id, &sub.Expires_at)
+		if err != nil {
+			return nil, err
+		}
+		subscriptions = append(subscriptions, sub)
+	}
+
+	return subscriptions, nil
+}
+
 func (r *SubscriptionRepository) UpdateKey(id int64, key string) error {
 	query := `UPDATE subscriptions SET key = $1 WHERE user_id = $2`
 	_, err := r.db.Exec(query, key, id)

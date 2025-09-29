@@ -2,6 +2,7 @@ package handlersUser
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,7 +14,7 @@ import (
 
 type service interface {
 	Create(u modelUser.User) error
-	Get(id int64) (*modelUser.User, error)
+	Get(id int64) (*modelUser.FullUser, error)
 	Update(user modelUser.User) error
 }
 
@@ -26,10 +27,6 @@ func NewUserHandler(s service) *UserHandler {
 }
 
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	var user modelUser.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -42,6 +39,7 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(user)
 	err := h.serv.Create(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -56,10 +54,6 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	path := strings.TrimPrefix(r.URL.Path, "/get-user/") //TODO
 	id, err := strconv.ParseInt(path, 10, 64)
@@ -79,10 +73,6 @@ func (h *UserHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "PUT" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	var user modelUser.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {

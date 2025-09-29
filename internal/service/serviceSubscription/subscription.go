@@ -3,6 +3,8 @@ package serviceSubscription
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"log"
+	"time"
 	"userServer/internal/models/modelSubscription"
 	"userServer/internal/service/servicePlan"
 )
@@ -12,6 +14,8 @@ type repository interface {
 	GetAll() ([]*modelSubscription.Subscription, error)
 	AddSubscription(modelSubscription.Subscription) error
 	UpdateKey(id int64, key string) error
+	Delete(id int64) error
+	GetSubscriptionsForCheck() ([]*modelSubscription.Subscription, error)
 }
 
 type SubscriptionService struct {
@@ -31,6 +35,29 @@ func (s *SubscriptionService) Get(id int64) (*modelSubscription.FullSubscription
 		return nil, nil //TODO
 	}
 	return sub, nil
+}
+
+func (s *SubscriptionService) BackgroundCheck() error {
+	subscriptions, _ := s.repo.GetSubscriptionsForCheck() //TODO
+
+	now := time.Now()
+	expiredCount := 0
+
+	for _, sub := range subscriptions {
+		if sub.Expires_at.Before(now) {
+			err := s.repo.Delete(sub.User_id)
+			if err != nil {
+				log.Printf("Ошибка удаления ключа для пользователя %d: %v", sub.User_id, err)
+				continue
+			}
+
+			expiredCount++
+			log.Printf("Подписка пользователя %d истекла, ключ удален", sub.User_id)
+		}
+	}
+
+	log.Printf("Проверка подписок завершена. Истекших подписок: %d из %d", expiredCount, len(subscriptions))
+	return nil
 }
 
 func (s *SubscriptionService) GetAll() ([]*modelSubscription.Subscription, error) {

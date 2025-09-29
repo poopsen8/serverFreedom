@@ -9,18 +9,18 @@ type repository interface {
 	GetAll() ([]*modelOperator.Operator, error)
 }
 
-type PlanService struct {
+type OperetorService struct {
 	repo repository
 }
 
-func NewOperatorService(repo repository) *PlanService {
-	return &PlanService{repo: repo}
+func NewOperatorService(repo repository) *OperetorService {
+	return &OperetorService{repo: repo}
 }
 
-func (s *PlanService) Get(id int64) (*modelOperator.Operator, error) {
+func (s *OperetorService) Get(id int64) (*modelOperator.Operator, error) {
 	return s.repo.Get(id)
 }
 
-func (s *PlanService) GetAll() ([]*modelOperator.Operator, error) {
+func (s *OperetorService) GetAll() ([]*modelOperator.Operator, error) {
 	return s.repo.GetAll()
 }
