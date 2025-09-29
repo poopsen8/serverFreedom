@@ -18,13 +18,19 @@ type repository interface {
 	GetSubscriptionsForCheck() ([]*modelSubscription.Subscription, error)
 }
 
+type repositoryFile interface {
+	AddKey(key string) error
+	RemoveKey(key string) error
+}
+
 type SubscriptionService struct {
 	repo repository
 	pl   servicePlan.Repository
+	js   repositoryFile
 }
 
-func NewSubscriptionService(repo repository, pl servicePlan.Repository) *SubscriptionService {
-	return &SubscriptionService{repo: repo, pl: pl}
+func NewSubscriptionService(repo repository, js repositoryFile, pl servicePlan.Repository) *SubscriptionService {
+	return &SubscriptionService{repo: repo, pl: pl, js: js}
 }
 
 func (s *SubscriptionService) Get(id int64) (*modelSubscription.FullSubscription, error) {
@@ -47,16 +53,15 @@ func (s *SubscriptionService) BackgroundCheck() error {
 		if sub.Expires_at.Before(now) {
 			err := s.repo.Delete(sub.User_id)
 			if err != nil {
-				log.Printf("Ошибка удаления ключа для пользователя %d: %v", sub.User_id, err)
 				continue
 			}
 
 			expiredCount++
-			log.Printf("Подписка пользователя %d истекла, ключ удален", sub.User_id)
+			log.Printf("Подписка пользователя %d истекла", sub.User_id) //TODO отпровлять что все пиздец конец подписьки
+			s.js.RemoveKey(sub.Key)                                     // TODO
+
 		}
 	}
-
-	log.Printf("Проверка подписок завершена. Истекших подписок: %d из %d", expiredCount, len(subscriptions))
 	return nil
 }
 
@@ -79,6 +84,9 @@ func (s *SubscriptionService) newKey() string {
 
 func (s *SubscriptionService) UpdateKey(id int64) (string, error) {
 	key := s.newKey()
+	sub, _ := s.repo.Get(id)
+	s.js.RemoveKey(sub.Key)
+	s.js.AddKey(key)
 
 	err := s.repo.UpdateKey(id, key)
 	if err != nil {
@@ -89,5 +97,7 @@ func (s *SubscriptionService) UpdateKey(id int64) (string, error) {
 
 func (s *SubscriptionService) AddSubscription(u *modelSubscription.Subscription) error {
 	u.Key = s.newKey() //TODO нужно сделать проверку на то сущестует ли вообще такой планы
+
+	s.js.AddKey(u.Key)
 	return s.repo.AddSubscription(*u)
 }

@@ -42,7 +42,7 @@ func (r *SubscriptionRepository) Delete(id int64) error {
 }
 
 func (r *SubscriptionRepository) GetSubscriptionsForCheck() ([]*modelSubscription.Subscription, error) {
-	query := `SELECT user_id, expires_at FROM subscriptions WHERE key IS NOT NULL`
+	query := `SELECT user_id, expires_at, key FROM subscriptions`
 	rows, err := r.db.Query(query)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (r *SubscriptionRepository) GetSubscriptionsForCheck() ([]*modelSubscriptio
 	var subscriptions []*modelSubscription.Subscription
 	for rows.Next() {
 		sub := &modelSubscription.Subscription{}
-		err := rows.Scan(&sub.User_id, &sub.Expires_at)
+		err := rows.Scan(&sub.User_id, &sub.Expires_at, &sub.Key)
 		if err != nil {
 			return nil, err
 		}

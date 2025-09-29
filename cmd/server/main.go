@@ -9,11 +9,11 @@ import (
 
 	"userServer/internal/handlers/http/handlersPlan"
 	"userServer/internal/handlers/http/handlersUser"
+	"userServer/internal/repository/json/subscription"
 	"userServer/internal/repository/postgres/repositoryOperetor"
 	"userServer/internal/repository/postgres/repositoryPlan"
 	"userServer/internal/repository/postgres/repositorySubscription"
 	"userServer/internal/repository/postgres/repositoryUser"
-
 	"userServer/internal/service/serviceOperetor"
 	"userServer/internal/service/servicePlan"
 	"userServer/internal/service/serviceSubscription"
@@ -22,12 +22,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// TODO РАЗОБРАЬ ЭТОТ ПЗИДЦ и названия файла конфига выынести в конфиг
 func initLayers() (*handlersUser.UserHandler, *handlersPlan.PlanHandler, *handlerOperator.OperatorHandler, *handlerSubscription.SubscriptionHandler, *background.TaskService) {
 	operatorHandler := handlerOperator.NewOperatorHandler(serviceOperetor.NewOperatorService(repositoryOperetor.NewOperetorRepository()))
 	userHandler := handlersUser.NewUserHandler(serviceUser.NewUserService(repositoryUser.NewUserRepository(), *serviceOperetor.NewOperatorService(repositoryOperetor.NewOperetorRepository())))
 	planHandler := handlersPlan.NewPlanHandler(servicePlan.NewPlanService(repositoryPlan.NewPlanRepository()))
-	subscriptionHandler := handlerSubscription.NewSubscriptionHandler(serviceSubscription.NewSubscriptionService(repositorySubscription.NewSubscriptionRepository(), servicePlan.NewPlanService(repositoryPlan.NewPlanRepository())))
-	taskService := background.NewTaskService(serviceSubscription.NewSubscriptionService(repositorySubscription.NewSubscriptionRepository(), servicePlan.NewPlanService(repositoryPlan.NewPlanRepository())))
+	subscriptionHandler := handlerSubscription.NewSubscriptionHandler(serviceSubscription.NewSubscriptionService(repositorySubscription.NewSubscriptionRepository(), subscription.NewSubscriptionRepository(), servicePlan.NewPlanService(repositoryPlan.NewPlanRepository())))
+	taskService := background.NewTaskService(serviceSubscription.NewSubscriptionService(repositorySubscription.NewSubscriptionRepository(), subscription.NewSubscriptionRepository(), servicePlan.NewPlanService(repositoryPlan.NewPlanRepository())))
 	return userHandler, planHandler, operatorHandler, subscriptionHandler, taskService
 }
 

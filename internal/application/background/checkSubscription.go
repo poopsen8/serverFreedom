@@ -21,7 +21,7 @@ func NewTaskService(subscriptionService service) *TaskService {
 
 func (ts *TaskService) StartPeriodicTasks() {
 	go func() {
-		ticker := time.NewTicker(5 * time.Minute)
+		ticker := time.NewTicker(5 * time.Minute) //TODO в конфиг ебнуть
 		defer ticker.Stop()
 		for range ticker.C {
 			ts.subscriptionService.BackgroundCheck()
