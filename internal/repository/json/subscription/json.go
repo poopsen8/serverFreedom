@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"userServer/internal/models/config"
+	config "userServer/internal/model/config/JSON"
 )
 
 type subscriptionRepository struct {

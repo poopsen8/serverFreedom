@@ -1,8 +1,24 @@
 
-database: 
-  password:"pasword"
-  login:"login"
 
+
+
+user_routes:
+  register: "/register-user"
+  update: "/update-user"
+  get: "/user/"
+
+subscription_routes:
+  add_subscription: "/add-subscription"
+  update_key: "/update-key-subscription/"
+  get: "/subscription/"
+
+plan_routes:
+  get_all: "/plans"
+  get: "/plan/"
+
+operator_routes:
+  get_all: "/operators"
+  get: "/operator/"
 
 
 

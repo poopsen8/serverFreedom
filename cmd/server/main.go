@@ -4,52 +4,73 @@ import (
 	"log"
 	"net/http"
 	"userServer/internal/application/background"
-	"userServer/internal/handlers/http/handlerOperator"
-	"userServer/internal/handlers/http/handlerSubscription"
+	handlerOperator "userServer/internal/handler/http/operator"
+	handlerSubscription "userServer/internal/handler/http/subscription"
 
-	"userServer/internal/handlers/http/handlersPlan"
-	"userServer/internal/handlers/http/handlersUser"
+	handlersPlan "userServer/internal/handler/http/plan"
+	userHandler "userServer/internal/handler/http/user"
+	yaml "userServer/internal/model/config/YAML"
 	"userServer/internal/repository/json/subscription"
-	"userServer/internal/repository/postgres/repositoryOperetor"
-	"userServer/internal/repository/postgres/repositoryPlan"
-	"userServer/internal/repository/postgres/repositorySubscription"
-	"userServer/internal/repository/postgres/repositoryUser"
-	"userServer/internal/service/serviceOperetor"
-	"userServer/internal/service/servicePlan"
-	"userServer/internal/service/serviceSubscription"
-	"userServer/internal/service/serviceUser"
+	repositoryOperetor "userServer/internal/repository/postgres/operetor"
+	repositoryPlan "userServer/internal/repository/postgres/plan"
+	repositorySubscription "userServer/internal/repository/postgres/subscription"
+	userRepository "userServer/internal/repository/postgres/user"
+	serviceOperator "userServer/internal/service/operetor"
+	servicePlan "userServer/internal/service/plan"
+	serviceSubscription "userServer/internal/service/subscription"
+	userService "userServer/internal/service/user"
 
 	"github.com/gorilla/mux"
 )
 
-// TODO РАЗОБРАЬ ЭТОТ ПЗИДЦ и названия файла конфига выынести в конфиг
-func initLayers() (*handlersUser.UserHandler, *handlersPlan.PlanHandler, *handlerOperator.OperatorHandler, *handlerSubscription.SubscriptionHandler, *background.TaskService) {
-	operatorHandler := handlerOperator.NewOperatorHandler(serviceOperetor.NewOperatorService(repositoryOperetor.NewOperetorRepository()))
-	userHandler := handlersUser.NewUserHandler(serviceUser.NewUserService(repositoryUser.NewUserRepository(), *serviceOperetor.NewOperatorService(repositoryOperetor.NewOperetorRepository())))
-	planHandler := handlersPlan.NewPlanHandler(servicePlan.NewPlanService(repositoryPlan.NewPlanRepository()))
-	subscriptionHandler := handlerSubscription.NewSubscriptionHandler(serviceSubscription.NewSubscriptionService(repositorySubscription.NewSubscriptionRepository(), subscription.NewSubscriptionRepository(), servicePlan.NewPlanService(repositoryPlan.NewPlanRepository())))
-	taskService := background.NewTaskService(serviceSubscription.NewSubscriptionService(repositorySubscription.NewSubscriptionRepository(), subscription.NewSubscriptionRepository(), servicePlan.NewPlanService(repositoryPlan.NewPlanRepository())))
+func initLayers(routesCfg yaml.RouteConfig) (
+	*userHandler.UserHandler,
+	*handlersPlan.PlanHandler,
+	*handlerOperator.OperatorHandler,
+	*handlerSubscription.SubscriptionHandler,
+	*background.TaskService,
+) {
+	operatorRepo := repositoryOperetor.NewOperetorRepository()
+	userRepo := userRepository.NewUserRepository()
+	planRepo := repositoryPlan.NewPlanRepository()
+	subscriptionRepo := repositorySubscription.NewSubscriptionRepository()
+	subscriptionRepo2 := subscription.NewSubscriptionRepository()
+
+	operatorService := serviceOperator.NewOperatorService(operatorRepo)
+	planService := servicePlan.NewPlanService(planRepo)
+	userService := userService.NewUserService(userRepo, *operatorService)
+	subscriptionService := serviceSubscription.NewSubscriptionService(
+		subscriptionRepo,
+		subscriptionRepo2,
+		*planService,
+		*userService,
+		*operatorService,
+	)
+
+	operatorHandler := handlerOperator.NewOperatorHandler(operatorService, routesCfg)
+	userHandler := userHandler.NewUserHandler(userService, routesCfg)
+	planHandler := handlersPlan.NewPlanHandler(planService, routesCfg)
+	subscriptionHandler := handlerSubscription.NewSubscriptionHandler(subscriptionService, routesCfg)
+	taskService := background.NewTaskService(subscriptionService)
+
 	return userHandler, planHandler, operatorHandler, subscriptionHandler, taskService
 }
 
 func main() {
+
+	routesCfg, err := yaml.LoadConfig("config/config.yaml")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	router := mux.NewRouter()
-	userHandler, planHandler, operatorHandler, subscriptionHandler, taskService := initLayers()
+	userHandler, planHandler, operatorHandler, subscriptionHandler, taskService := initLayers(*routesCfg)
 	taskService.StartPeriodicTasks()
 
-	router.HandleFunc("/register-user", userHandler.Create).Methods("POST") // TODO
-	router.HandleFunc("/update-user", userHandler.Update).Methods("PUT")    // TODO
-	router.HandleFunc("/get-user/{id}", userHandler.Get).Methods("GET")     // TODO
-
-	router.HandleFunc("/get-plan/{id}", planHandler.Get).Methods("GET") // TODO
-	router.HandleFunc("/get-plans", planHandler.GetAll).Methods("GET")  // TODO
-
-	router.HandleFunc("/get-operator/{id}", operatorHandler.Get).Methods("GET") // TODO
-	router.HandleFunc("/get-operators", operatorHandler.GetAll).Methods("GET")  // TODO
-
-	router.HandleFunc("/add-subscription", subscriptionHandler.AddSubscription).Methods("POST")      // TODO
-	router.HandleFunc("/subscription/{id}", subscriptionHandler.Get).Methods("GET")                  // TODO
-	router.HandleFunc("/update-key-subscription/{id}", subscriptionHandler.UpdateKey).Methods("PUT") // TODO
+	userHandler.RegisterRoutes(router)
+	planHandler.RegisterRoutes(router)
+	operatorHandler.RegisterRoutes(router)
+	subscriptionHandler.RegisterRoutes(router)
 
 	log.Println("Server starting on :8082")
 	log.Fatal(http.ListenAndServe(":8082", router))
