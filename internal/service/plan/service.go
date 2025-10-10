@@ -1,6 +1,8 @@
 package plan
 
-import "userServer/internal/model/plan"
+import (
+	"userServer/internal/model/plan"
+)
 
 type Repository interface {
 	Plan(id int64) (*plan.Model, error)

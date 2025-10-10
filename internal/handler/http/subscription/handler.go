@@ -9,11 +9,7 @@ import (
 	httperr "userServer/internal/handler/http"
 	yaml "userServer/internal/model/config/YAML"
 	"userServer/internal/model/subscription"
-
-	"github.com/gorilla/mux"
 )
-
-//  TODO весь нахуй файл нуно снасить нахуй и переделовать нормально
 
 type service interface {
 	Subscription(id int64) (*subscription.FullModel, error)
@@ -27,32 +23,32 @@ type SubscriptionHandler struct {
 	rCfg yaml.RouteConfig
 }
 
-func (s *SubscriptionHandler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc(s.rCfg.SR.AddSubscription, s.AddSubscription).Methods("POST") // TODO принимаент user_id ,plan_id, create_at, expires_at
-	router.HandleFunc(s.rCfg.SR.Get+"{id}", s.Subscription).Methods("GET")          // TODO принимает user_id
-	router.HandleFunc(s.rCfg.SR.UpdateKey+"{id}", s.UpdateKey).Methods("PUT")       // TODO принимает user_id
-
-}
-
 func NewSubscriptionHandler(s service, rCfg yaml.RouteConfig) *SubscriptionHandler {
 	return &SubscriptionHandler{serv: s, rCfg: rCfg}
+}
+
+func writeJSONError(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": message,
+	})
 }
 
 func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Request) {
 	var sub subscription.Model
 	if err := json.NewDecoder(r.Body).Decode(&sub); err != nil {
-		http.Error(w, httperr.ErrInvalidJSON.Err.Error(), httperr.ErrInvalidJSON.StatusRequest)
+		writeJSONError(w, httperr.ErrInvalidJSON.StatusRequest, httperr.ErrInvalidJSON.Err.Error())
 		return
 	}
 
 	if errid := httperr.ValidateUserID(sub.User_id); errid.StatusRequest != 0 {
-		http.Error(w, errid.Err.Error(), errid.StatusRequest)
+		writeJSONError(w, errid.StatusRequest, errid.Err.Error())
 		return
 	}
 
-	err := h.serv.AddSubscription(&sub)
-	if err != nil {
-		http.Error(w, httperr.ErrIDNotFound.Err.Error(), httperr.ErrIDNotFound.StatusRequest) //TODO
+	if err := h.serv.AddSubscription(&sub); err != nil {
+		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 
@@ -64,17 +60,21 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 }
 
 func (h *SubscriptionHandler) UpdateKey(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimPrefix(r.URL.Path, h.rCfg.SR.UpdateKey) //TODO
+	path := strings.TrimPrefix(r.URL.Path, "/update-key-subscription/")
 	id, err := strconv.ParseInt(path, 10, 64)
-
-	if errid := httperr.ValidateUserID(id); errid.StatusRequest != 0 || err != nil {
-		http.Error(w, errid.Err.Error(), errid.StatusRequest)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid user ID")
 		return
 	}
 
-	key, exists := h.serv.UpdateKey(id)
-	if exists != nil {
-		http.Error(w, httperr.ErrIDNotFound.Err.Error(), httperr.ErrIDNotFound.StatusRequest) //TODO
+	if errid := httperr.ValidateUserID(id); errid.StatusRequest != 0 {
+		writeJSONError(w, errid.StatusRequest, errid.Err.Error())
+		return
+	}
+
+	key, err := h.serv.UpdateKey(id)
+	if err != nil {
+		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 
@@ -83,24 +83,29 @@ func (h *SubscriptionHandler) UpdateKey(w http.ResponseWriter, r *http.Request) 
 		Key     string `json:"key"`
 	}
 
-	var s sub
-	s.Key = key
-	s.User_id = id
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(s)
+	json.NewEncoder(w).Encode(sub{
+		User_id: id,
+		Key:     key,
+	})
 }
 
 func (h *SubscriptionHandler) Subscription(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimPrefix(r.URL.Path, h.rCfg.SR.Get) //TODO
+	path := strings.TrimPrefix(r.URL.Path, "/subscription/")
 	id, err := strconv.ParseInt(path, 10, 64)
-	if errid := httperr.ValidateUserID(id); errid.StatusRequest != 0 || err != nil {
-		http.Error(w, errid.Err.Error(), errid.StatusRequest)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid user ID")
 		return
 	}
 
-	sub, exists := h.serv.Subscription(id)
-	if exists != nil {
-		http.Error(w, httperr.ErrIDNotFound.Err.Error(), httperr.ErrIDNotFound.StatusRequest) //TODO
+	if errid := httperr.ValidateUserID(id); errid.StatusRequest != 0 {
+		writeJSONError(w, errid.StatusRequest, errid.Err.Error())
+		return
+	}
+
+	sub, err := h.serv.Subscription(id)
+	if err != nil {
+		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 
@@ -109,9 +114,9 @@ func (h *SubscriptionHandler) Subscription(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *SubscriptionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	plan, exists := h.serv.GetAll()
-	if exists != nil {
-		http.Error(w, httperr.ErrIDNotFound.Err.Error(), httperr.ErrIDNotFound.StatusRequest) //TODO
+	plan, err := h.serv.GetAll()
+	if err != nil {
+		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 

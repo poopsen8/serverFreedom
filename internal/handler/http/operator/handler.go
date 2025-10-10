@@ -9,11 +9,7 @@ import (
 	httperr "userServer/internal/handler/http"
 	yaml "userServer/internal/model/config/YAML"
 	"userServer/internal/model/operator"
-
-	"github.com/gorilla/mux"
 )
-
-//  TODO весь нахуй файл нуно снасить нахуй и переделовать нормально
 
 type service interface {
 	Operator(id int64) (*operator.Model, error)
@@ -25,40 +21,48 @@ type OperatorHandler struct {
 	rCfg yaml.RouteConfig
 }
 
-func (o *OperatorHandler) RegisterRoutes(router *mux.Router) {
-	router.HandleFunc(o.rCfg.OP.Get+"{id}", o.Operator).Methods("GET") // TODO принимает id
-	router.HandleFunc(o.rCfg.OP.GetAll, o.GetAll).Methods("GET")       // TODO
-}
-
 func NewOperatorHandler(s service, rCfg yaml.RouteConfig) *OperatorHandler {
 	return &OperatorHandler{serv: s, rCfg: rCfg}
 }
 
+func writeJSONError(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": message,
+	})
+}
+
 func (o *OperatorHandler) Operator(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimPrefix(r.URL.Path, o.rCfg.OP.Get) //TODO
+	path := strings.TrimPrefix(r.URL.Path, "/operator/")
 	id, err := strconv.ParseInt(path, 10, 64)
-	if errid := httperr.ValidateUserID(id); errid.StatusRequest != 0 || err != nil {
-		http.Error(w, errid.Err.Error(), errid.StatusRequest)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid operator ID")
 		return
 	}
 
-	plan, exists := o.serv.Operator(id)
-	if exists != nil {
-		http.Error(w, httperr.ErrIDNotFound.Err.Error(), httperr.ErrIDNotFound.StatusRequest)
+	if errid := httperr.ValidateUserID(id); errid.StatusRequest != 0 {
+		writeJSONError(w, errid.StatusRequest, errid.Err.Error())
+		return
+	}
+
+	op, err := o.serv.Operator(id)
+	if err != nil {
+		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(plan)
+	json.NewEncoder(w).Encode(op)
 }
 
 func (o *OperatorHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	plan, exists := o.serv.GetAll()
-	if exists != nil {
-		http.Error(w, httperr.ErrIDNotFound.Err.Error(), httperr.ErrIDNotFound.StatusRequest)
+	ops, err := o.serv.GetAll()
+	if err != nil {
+		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(plan)
+	json.NewEncoder(w).Encode(ops)
 }

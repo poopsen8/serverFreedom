@@ -2,24 +2,10 @@
 
 
 
-user_routes:
-  register: "/register-user"
-  update: "/update-user"
-  get: "/user/"
-
-subscription_routes:
-  add_subscription: "/add-subscription"
-  update_key: "/update-key-subscription/"
-  get: "/subscription/"
-
-plan_routes:
-  get_all: "/plans"
-  get: "/plan/"
-
-operator_routes:
-  get_all: "/operators"
-  get: "/operator/"
-
-
-
-
+db:
+  host: db
+  port: 5432
+  user: postgres
+  password: postgres
+  name: userdb
+  sslmode: disable

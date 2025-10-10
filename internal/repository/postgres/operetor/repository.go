@@ -11,10 +11,7 @@ type operetorRepository struct {
 	db *sql.DB
 }
 
-func NewOperetorRepository() *operetorRepository {
-	connStr := "host=localhost port=5432 user=postgres password=1234  dbname=postgres sslmode=disable" //TODO ПИЗДЕЦ
-	db, _ := sql.Open("postgres", connStr)
-
+func NewOperetorRepository(db *sql.DB) *operetorRepository {
 	return &operetorRepository{db: db}
 }
 

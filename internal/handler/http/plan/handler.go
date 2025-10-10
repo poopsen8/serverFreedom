@@ -9,11 +9,7 @@ import (
 	httperr "userServer/internal/handler/http"
 	yaml "userServer/internal/model/config/YAML"
 	"userServer/internal/model/plan"
-
-	"github.com/gorilla/mux"
 )
-
-//  TODO весь нахуй файл нуно снасить нахуй и переделовать нормально
 
 type service interface {
 	Plan(id int64) (*plan.Model, error)
@@ -25,41 +21,49 @@ type PlanHandler struct {
 	rCfg yaml.RouteConfig
 }
 
-func (p *PlanHandler) RegisterRoutes(router *mux.Router) {
-
-	router.HandleFunc(p.rCfg.PR.Get+"{id}", p.Plan).Methods("GET") // TODO принимает id
-	router.HandleFunc(p.rCfg.PR.GetAll, p.GetAll).Methods("GET")   // TODO
-}
-
 func NewPlanHandler(s service, rCfg yaml.RouteConfig) *PlanHandler {
 	return &PlanHandler{serv: s, rCfg: rCfg}
 }
 
+// универсальная функция для JSON-ошибок
+func writeJSONError(w http.ResponseWriter, status int, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": message,
+	})
+}
+
 func (p *PlanHandler) Plan(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimPrefix(r.URL.Path, p.rCfg.PR.Get) //TODO
+	path := strings.TrimPrefix(r.URL.Path, "/plan/")
 	id, err := strconv.ParseInt(path, 10, 64)
-	if errid := httperr.ValidateUserID(id); errid.StatusRequest != 0 || err != nil {
-		http.Error(w, errid.Err.Error(), errid.StatusRequest)
+	if err != nil {
+		writeJSONError(w, http.StatusBadRequest, "invalid plan ID")
 		return
 	}
 
-	plan, exists := p.serv.Plan(id)
-	if exists != nil {
-		http.Error(w, httperr.ErrIDNotFound.Err.Error(), httperr.ErrIDNotFound.StatusRequest)
+	if errid := httperr.ValidateUserID(id); errid.StatusRequest != 0 {
+		writeJSONError(w, errid.StatusRequest, errid.Err.Error())
+		return
+	}
+
+	pl, err := p.serv.Plan(id)
+	if err != nil {
+		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(plan)
+	json.NewEncoder(w).Encode(pl)
 }
 
 func (p *PlanHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	plan, exists := p.serv.GetAll()
-	if exists != nil {
-		http.Error(w, httperr.ErrIDNotFound.Err.Error(), httperr.ErrIDNotFound.StatusRequest)
+	plans, err := p.serv.GetAll()
+	if err != nil {
+		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(plan)
+	json.NewEncoder(w).Encode(plans)
 }

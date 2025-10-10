@@ -1,6 +1,7 @@
 package yaml
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -9,13 +10,13 @@ import (
 func LoadConfig(path string) (*RouteConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read config: %w", err)
 	}
 
-	var config RouteConfig
-	if err := yaml.Unmarshal(data, &config); err != nil {
-		return nil, err
+	var cfg RouteConfig
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
+		return nil, fmt.Errorf("parse config: %w", err)
 	}
 
-	return &config, nil
+	return &cfg, nil
 }

@@ -11,10 +11,7 @@ type userRepository struct {
 	db *sql.DB
 }
 
-func NewUserRepository() *userRepository {
-	connStr := "host=localhost port=5432 user=postgres password=1234  dbname=postgres sslmode=disable" //TODO
-	db, _ := sql.Open("postgres", connStr)
-
+func NewUserRepository(db *sql.DB) *userRepository {
 	return &userRepository{db: db}
 }
 

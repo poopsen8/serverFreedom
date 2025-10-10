@@ -12,9 +12,7 @@ type SubscriptionRepository struct {
 	db *sql.DB
 }
 
-func NewSubscriptionRepository() *SubscriptionRepository {
-	connStr := "host=localhost port=5432 user=postgres password=1234  dbname=postgres sslmode=disable" //TODO ПИЗДЕЦ
-	db, _ := sql.Open("postgres", connStr)
+func NewSubscriptionRepository(db *sql.DB) *SubscriptionRepository {
 	return &SubscriptionRepository{db: db}
 }
 

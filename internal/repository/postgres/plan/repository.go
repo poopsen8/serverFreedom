@@ -11,10 +11,7 @@ type planRepository struct {
 	db *sql.DB
 }
 
-func NewPlanRepository() *planRepository {
-	connStr := "host=localhost port=5432 user=postgres password=1234  dbname=postgres sslmode=disable" //TODO ПИЗДЕЦ
-	db, _ := sql.Open("postgres", connStr)
-
+func NewPlanRepository(db *sql.DB) *planRepository {
 	return &planRepository{db: db}
 }
 

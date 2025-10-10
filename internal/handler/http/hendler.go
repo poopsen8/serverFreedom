@@ -26,7 +26,7 @@ var ErrIDNotFound = ErrorHttp{
 }
 
 func ValidateUserID(id int64) ErrorHttp {
-	if id <= 1 {
+	if id <= 0 {
 		return ErrInvalidID
 	}
 	return ErrorHttp{nil, 0}
