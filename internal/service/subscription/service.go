@@ -3,7 +3,6 @@ package subscription
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"log"
 	"time"
 	"userServer/internal/model/subscription"
@@ -109,29 +108,20 @@ func (s *SubscriptionService) UpdateKey(id int64) (string, error) {
 func (s *SubscriptionService) AddSubscription(u *subscription.Model) (*subscription.Model, error) {
 	u.Key = s.newKey()
 
-	fmt.Printf("u: %v\n", u)
 	pl, err := s.pl.Plan(int64(u.Plan_id))
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		fmt.Printf("\"plan\": %v\n", "plan")
 		return nil, err
 	}
 
-	fmt.Printf("\"fdfd\": %v\n", "fdfd")
 	usr, err := s.us.User(u.User_id)
 	if err != nil {
-		fmt.Printf("err: %v\n", err)
-		fmt.Printf("\"user\": %v\n", "user")
 		return nil, err
 	}
 
-	fmt.Printf("\"нет нот фаунд\": %v\n", "нет нот фаунд")
 	var user modUser.Model
 	user.ID = usr.ID
 	user.TotalSum = usr.TotalSum + int(pl.Price)
 	if err := s.us.Update(user); err != nil {
-		fmt.Printf("err: %v\n", err)
-		fmt.Printf("\"конец\": %v\n", "конец")
 		return nil, err
 	}
 

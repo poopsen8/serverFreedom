@@ -17,10 +17,19 @@ func NewSubscriptionRepository(db *sql.DB) *SubscriptionRepository {
 }
 
 func (r *SubscriptionRepository) AddSubscription(u subscription.Model) error {
-	query := `INSERT INTO subscriptions (user_id, plan_id, create_at, expires_at, key ) VALUES ($1, $2, $3, $4, $5) RETURNING user_id`
-	return r.db.QueryRow(query, u.User_id, u.Plan_id, u.CreateAt, u.Expires_at, u.Key).Scan(&u.User_id)
-}
+	query := `INSERT INTO subscriptions (user_id, plan_id, create_at, expires_at, key) 
+              VALUES ($1, $2, $3, $4, $5) 
+              RETURNING id`
 
+	var insertedID int64
+	err := r.db.QueryRow(query, u.User_id, u.Plan_id, u.CreateAt, u.Expires_at, u.Key).Scan(&insertedID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 func (r *SubscriptionRepository) Subscription(id int64) (*subscription.FullModel, error) {
 	query := `SELECT user_id, plan_id, create_at, expires_at, key FROM subscriptions WHERE user_id = $1`
 	u := &subscription.FullModel{}
