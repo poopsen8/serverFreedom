@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 
 	httperr "userServer/internal/handler/http"
 	yaml "userServer/internal/model/config/YAML"
@@ -35,8 +34,13 @@ func writeJSONError(w http.ResponseWriter, status int, message string) {
 }
 
 func (p *PlanHandler) Plan(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimPrefix(r.URL.Path, "/plan/")
-	id, err := strconv.ParseInt(path, 10, 64)
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		writeJSONError(w, http.StatusBadRequest, "missing 'id' query parameter")
+		return
+	}
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid plan ID")
 		return

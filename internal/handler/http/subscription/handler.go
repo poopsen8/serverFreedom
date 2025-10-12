@@ -2,9 +2,9 @@ package subscription
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 
 	httperr "userServer/internal/handler/http"
 	yaml "userServer/internal/model/config/YAML"
@@ -38,6 +38,7 @@ func writeJSONError(w http.ResponseWriter, status int, message string) {
 func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Request) {
 	var sub subscription.Model
 	if err := json.NewDecoder(r.Body).Decode(&sub); err != nil {
+		fmt.Printf("err.Error(): %v\n", err.Error())
 		writeJSONError(w, httperr.ErrInvalidJSON.StatusRequest, httperr.ErrInvalidJSON.Err.Error())
 		return
 	}
@@ -49,7 +50,7 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 
 	u, err := h.serv.AddSubscription(&sub)
 	if err != nil {
-		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
+		writeJSONError(w, 500, err.Error())
 		return
 	}
 
@@ -62,8 +63,13 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 }
 
 func (h *SubscriptionHandler) UpdateKey(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimPrefix(r.URL.Path, "/update-key-subscription/")
-	id, err := strconv.ParseInt(path, 10, 64)
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		writeJSONError(w, http.StatusBadRequest, "missing 'id' query parameter")
+		return
+	}
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid user ID")
 		return
@@ -93,8 +99,13 @@ func (h *SubscriptionHandler) UpdateKey(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *SubscriptionHandler) Subscription(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimPrefix(r.URL.Path, "/subscription/")
-	id, err := strconv.ParseInt(path, 10, 64)
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		writeJSONError(w, http.StatusBadRequest, "missing 'id' query parameter")
+		return
+	}
+
+	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
 		writeJSONError(w, http.StatusBadRequest, "invalid user ID")
 		return

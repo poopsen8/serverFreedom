@@ -93,5 +93,6 @@ func (r *userRepository) Update(user user.Model) error {
 		_, err := r.db.Exec(query, user.TotalSum, user.ID)
 		return err
 	}
+
 	return nil // TODO
 }

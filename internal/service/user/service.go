@@ -48,8 +48,5 @@ func (s *UserService) User(id int64) (*user.FullModel, error) {
 }
 
 func (s *UserService) Update(u user.Model) error {
-	if _, err := s.oper.Operator(u.MobileOperatorID); err != nil {
-		return err
-	}
 	return s.repo.Update(u)
 }
