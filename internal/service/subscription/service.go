@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 	"userServer/internal/model/subscription"
+	modUser "userServer/internal/model/user"
+
 	"userServer/internal/service/operetor"
 	"userServer/internal/service/plan"
 	"userServer/internal/service/user"
@@ -103,17 +105,26 @@ func (s *SubscriptionService) UpdateKey(id int64) (string, error) {
 	return key, nil
 }
 
-func (s *SubscriptionService) AddSubscription(u *subscription.Model) error {
-	u.Key = s.newKey() //TODO нужно сделать проверку на то сущестует ли вообще такой планы
+func (s *SubscriptionService) AddSubscription(u *subscription.Model) (*subscription.Model, error) {
+	u.Key = s.newKey()
 
-	if _, err := s.pl.Plan(int64(u.Plan_id)); err != nil {
-		return err
+	pl, err := s.pl.Plan(int64(u.Plan_id))
+	if err != nil {
+		return nil, err
 	}
 
-	if _, err := s.us.User(u.User_id); err != nil {
-		return err
+	usr, err := s.us.User(u.User_id)
+	if err != nil {
+		return nil, err
+	}
+
+	var user modUser.Model
+	user.ID = usr.ID
+	user.TotalSum = usr.TotalSum + int(pl.Price)
+	if err := s.us.Update(user); err != nil {
+		return nil, err
 	}
 
 	s.js.AddKey(u.Key)
-	return s.repo.AddSubscription(*u)
+	return u, s.repo.AddSubscription(*u)
 }

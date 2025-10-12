@@ -14,7 +14,7 @@ import (
 type service interface {
 	Subscription(id int64) (*subscription.FullModel, error)
 	GetAll() ([]*subscription.Model, error)
-	AddSubscription(*subscription.Model) error
+	AddSubscription(*subscription.Model) (*subscription.Model, error)
 	UpdateKey(id int64) (string, error)
 }
 
@@ -47,7 +47,8 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := h.serv.AddSubscription(&sub); err != nil {
+	u, err := h.serv.AddSubscription(&sub)
+	if err != nil {
 		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
@@ -55,7 +56,8 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"id": sub.User_id,
+		"id":  u.User_id,
+		"key": u.Key,
 	})
 }
 

@@ -37,7 +37,7 @@ func (r *userRepository) Update(user user.Model) error {
 		_, err := r.db.Exec(query, user.Username, user.ID)
 		return err
 	}
-	if user.ID != 0 {
+	if user.MobileOperatorID != 0 {
 		query := `UPDATE users SET operator_id = $1 WHERE id = $2`
 		_, err := r.db.Exec(query, user.MobileOperatorID, user.ID)
 		return err
@@ -45,6 +45,11 @@ func (r *userRepository) Update(user user.Model) error {
 	if !user.IsTrial {
 		query := `UPDATE users SET is_trial = $1 WHERE id = $2`
 		_, err := r.db.Exec(query, user.IsTrial, user.ID)
+		return err
+	}
+	if user.TotalSum != 0 {
+		query := `UPDATE users SET total_sum = $1 WHERE id = $2`
+		_, err := r.db.Exec(query, user.TotalSum, user.ID)
 		return err
 	}
 	return nil // TODO

@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	cfg, err := yaml.LoadConfig("../../config/config.yaml")
+	cfg, err := yaml.LoadConfig("config/config.yaml")
 	if err != nil {
 		log.Fatalf("❌❌❌ Ошибка загрузки конфигурации: %v ❌❌❌", err)
 	}
