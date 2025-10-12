@@ -6,7 +6,7 @@ import (
 
 type repository interface {
 	Operator(id int64) (*operator.Model, error)
-	GetAll() ([]*operator.Model, error)
+	Operators() ([]*operator.Model, error)
 }
 
 type OperetorService struct {
@@ -21,6 +21,6 @@ func (s *OperetorService) Operator(id int64) (*operator.Model, error) {
 	return s.repo.Operator(id)
 }
 
-func (s *OperetorService) GetAll() ([]*operator.Model, error) {
-	return s.repo.GetAll()
+func (s *OperetorService) Operators() ([]*operator.Model, error) {
+	return s.repo.Operators()
 }

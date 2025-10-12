@@ -31,6 +31,40 @@ func (r *userRepository) User(id int64) (*user.FullModel, error) {
 	return user, nil
 }
 
+func (r *userRepository) Users() ([]*user.Model, error) {
+	query := `SELECT id, username, create_at, operator_id, total_sum, is_trial FROM users`
+
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*user.Model
+	for rows.Next() {
+		var user user.Model
+
+		err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.CreateAt,
+			&user.MobileOperatorID,
+			&user.TotalSum,
+			&user.IsTrial,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, &user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
 func (r *userRepository) Update(user user.Model) error {
 	if user.Username != "" {
 		query := `UPDATE users SET username = $1 WHERE id = $2`

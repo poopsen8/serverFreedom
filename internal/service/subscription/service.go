@@ -15,7 +15,7 @@ import (
 
 type repository interface {
 	Subscription(id int64) (*subscription.FullModel, error)
-	GetAll() ([]*subscription.Model, error)
+	Subscriptions() ([]*subscription.Model, error)
 	AddSubscription(subscription.Model) error
 	UpdateKey(id int64, key string) error
 	Delete(id int64) error
@@ -75,8 +75,8 @@ func (s *SubscriptionService) BackgroundCheck() error {
 	return nil
 }
 
-func (s *SubscriptionService) GetAll() ([]*subscription.Model, error) {
-	return s.repo.GetAll()
+func (s *SubscriptionService) Subscriptions() ([]*subscription.Model, error) {
+	return s.repo.Subscriptions()
 }
 
 func (s *SubscriptionService) newKey() string {

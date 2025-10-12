@@ -66,7 +66,37 @@ func (r *SubscriptionRepository) UpdateKey(id int64, key string) error {
 	return err
 }
 
-func (r *SubscriptionRepository) GetAll() ([]*subscription.Model, error) {
+func (r *SubscriptionRepository) Subscriptions() ([]*subscription.Model, error) {
+	query := `SELECT user_id, plan_id, create_at, expires_at, key FROM subscriptions`
 
-	return nil, nil
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var subscriptions []*subscription.Model
+
+	for rows.Next() {
+		var sub subscription.Model
+
+		err := rows.Scan(
+			&sub.User_id,
+			&sub.Plan_id,
+			&sub.CreateAt,
+			&sub.Expires_at,
+			&sub.Key,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		subscriptions = append(subscriptions, &sub)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return subscriptions, nil
 }

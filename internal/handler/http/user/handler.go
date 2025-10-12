@@ -15,6 +15,7 @@ type service interface {
 	Create(u user.Model) error
 	User(id int64) (*user.FullModel, error)
 	Update(user user.Model) error
+	Users() ([]*user.Model, error)
 }
 
 type UserHandler struct {
@@ -79,6 +80,17 @@ func (u *UserHandler) User(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(usr)
+}
+
+func (u *UserHandler) Users(w http.ResponseWriter, r *http.Request) {
+	plans, err := u.serv.Users()
+	if err != nil {
+		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(plans)
 }
 
 func (u *UserHandler) Update(w http.ResponseWriter, r *http.Request) {

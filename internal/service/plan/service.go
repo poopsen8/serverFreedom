@@ -6,7 +6,7 @@ import (
 
 type Repository interface {
 	Plan(id int64) (*plan.Model, error)
-	GetAll() ([]*plan.Model, error)
+	Plans() ([]*plan.Model, error)
 }
 
 type PlanService struct {
@@ -21,6 +21,6 @@ func (s *PlanService) Plan(id int64) (*plan.Model, error) {
 	return s.repo.Plan(id)
 }
 
-func (s *PlanService) GetAll() ([]*plan.Model, error) {
-	return s.repo.GetAll()
+func (s *PlanService) Plans() ([]*plan.Model, error) {
+	return s.repo.Plans()
 }

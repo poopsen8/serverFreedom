@@ -13,7 +13,7 @@ import (
 
 type service interface {
 	Subscription(id int64) (*subscription.FullModel, error)
-	GetAll() ([]*subscription.Model, error)
+	Subscriptions() ([]*subscription.Model, error)
 	AddSubscription(*subscription.Model) (*subscription.Model, error)
 	UpdateKey(id int64) (string, error)
 }
@@ -115,8 +115,8 @@ func (h *SubscriptionHandler) Subscription(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(sub)
 }
 
-func (h *SubscriptionHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	plan, err := h.serv.GetAll()
+func (h *SubscriptionHandler) Subscriptions(w http.ResponseWriter, r *http.Request) {
+	plan, err := h.serv.Subscriptions()
 	if err != nil {
 		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return

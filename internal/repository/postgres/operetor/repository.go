@@ -31,7 +31,7 @@ func (r *operetorRepository) Operator(id int64) (*operator.Model, error) {
 	return operator, nil
 }
 
-func (r *operetorRepository) GetAll() ([]*operator.Model, error) {
+func (r *operetorRepository) Operators() ([]*operator.Model, error) {
 	query := `SELECT id, name, is_active FROM operators`
 
 	rows, err := r.db.Query(query)

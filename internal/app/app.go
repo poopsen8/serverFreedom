@@ -78,18 +78,23 @@ func (a *App) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/update-user", a.UserHandler.Update).Methods("PUT")    // принимает одно значение на изменение и id пользователя - MobileOperatorID, IsTrial
 	router.HandleFunc("/user/{id}", a.UserHandler.User).Methods("GET")        // принимает id
 
+	router.HandleFunc("/users", a.UserHandler.Users).Methods("GET")
+
 	// --- PLAN ROUTES ---
 	router.HandleFunc("/plan/{id}", a.PlanHandler.Plan).Methods("GET") // принимает id
-	router.HandleFunc("/plans", a.PlanHandler.GetAll).Methods("GET")   // получить все планы
+	router.HandleFunc("/plans", a.PlanHandler.Plans).Methods("GET")    // получить все планы
 
 	// --- OPERATOR ROUTES ---
 	router.HandleFunc("/operator/{id}", a.OperatorHandler.Operator).Methods("GET") // принимает id
-	router.HandleFunc("/operators", a.OperatorHandler.GetAll).Methods("GET")       // получить всех операторов
+	router.HandleFunc("/operators", a.OperatorHandler.Operators).Methods("GET")    // получить всех операторов
 
 	// --- SUBSCRIPTION ROUTES ---
 	router.HandleFunc("/add-subscription", a.SubscriptionHandler.AddSubscription).Methods("POST")      // принимает user_id, plan_id, create_at, expires_at
 	router.HandleFunc("/subscription/{id}", a.SubscriptionHandler.Subscription).Methods("GET")         // принимает user_id
 	router.HandleFunc("/update-key-subscription/{id}", a.SubscriptionHandler.UpdateKey).Methods("PUT") // принимает user_id
+
+	router.HandleFunc("/subscriptions", a.SubscriptionHandler.Subscriptions).Methods("GET") // принимает user_id
+
 }
 
 func (a *App) Close() {

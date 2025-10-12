@@ -34,7 +34,7 @@ func (r *planRepository) Plan(id int64) (*plan.Model, error) {
 	return plan, nil
 }
 
-func (r *planRepository) GetAll() ([]*plan.Model, error) {
+func (r *planRepository) Plans() ([]*plan.Model, error) {
 	query := `SELECT id, name, duration, price, discount, is_private FROM plans`
 
 	rows, err := r.db.Query(query)

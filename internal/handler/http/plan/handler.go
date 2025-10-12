@@ -13,7 +13,7 @@ import (
 
 type service interface {
 	Plan(id int64) (*plan.Model, error)
-	GetAll() ([]*plan.Model, error)
+	Plans() ([]*plan.Model, error)
 }
 
 type PlanHandler struct {
@@ -57,8 +57,8 @@ func (p *PlanHandler) Plan(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(pl)
 }
 
-func (p *PlanHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	plans, err := p.serv.GetAll()
+func (p *PlanHandler) Plans(w http.ResponseWriter, r *http.Request) {
+	plans, err := p.serv.Plans()
 	if err != nil {
 		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return

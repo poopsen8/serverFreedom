@@ -13,7 +13,7 @@ import (
 
 type service interface {
 	Operator(id int64) (*operator.Model, error)
-	GetAll() ([]*operator.Model, error)
+	Operators() ([]*operator.Model, error)
 }
 
 type OperatorHandler struct {
@@ -56,8 +56,8 @@ func (o *OperatorHandler) Operator(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(op)
 }
 
-func (o *OperatorHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	ops, err := o.serv.GetAll()
+func (o *OperatorHandler) Operators(w http.ResponseWriter, r *http.Request) {
+	ops, err := o.serv.Operators()
 	if err != nil {
 		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return

@@ -9,6 +9,7 @@ type repository interface {
 	Create(u user.Model) error
 	User(id int64) (*user.FullModel, error)
 	Update(u user.Model) error //TODO
+	Users() ([]*user.Model, error)
 }
 
 type UserService struct {
@@ -22,6 +23,10 @@ func NewUserService(repo repository, oper operetor.OperetorService) *UserService
 
 func (s *UserService) Create(u user.Model) error {
 	return s.repo.Create(u)
+}
+
+func (s *UserService) Users() ([]*user.Model, error) {
+	return s.repo.Users()
 }
 
 func (s *UserService) User(id int64) (*user.FullModel, error) {
