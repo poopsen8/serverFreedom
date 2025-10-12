@@ -2,7 +2,6 @@ package user
 
 import (
 	"database/sql"
-	"fmt"
 	"userServer/internal/model/user"
 
 	_ "github.com/lib/pq"
@@ -37,7 +36,6 @@ func (r *userRepository) Users() ([]*user.Model, error) {
 
 	rows, err := r.db.Query(query)
 	if err != nil {
-		fmt.Printf("\"ошибка команды 2224\": %v\n", "ошибка команды 2224")
 		return nil, err
 	}
 	defer rows.Close()
@@ -45,12 +43,13 @@ func (r *userRepository) Users() ([]*user.Model, error) {
 	var users []*user.Model
 	for rows.Next() {
 		var user user.Model
+		var operatorID sql.NullInt64
 
 		err := rows.Scan(
 			&user.ID,
 			&user.Username,
 			&user.CreateAt,
-			&user.MobileOperatorID,
+			&operatorID,
 			&user.TotalSum,
 			&user.IsTrial,
 		)
@@ -58,16 +57,21 @@ func (r *userRepository) Users() ([]*user.Model, error) {
 			return nil, err
 		}
 
+		if operatorID.Valid {
+			user.MobileOperatorID = operatorID.Int64
+		} else {
+			user.MobileOperatorID = 0
+		}
+
 		users = append(users, &user)
 	}
 
 	if err := rows.Err(); err != nil {
-		fmt.Printf("\"ошибка номер 777\": %v\n", "ошибка номер 777")
 		return nil, err
 	}
-	fmt.Printf("\"нет брат ошибок\": %v\n", "нет брат ошибок")
 	return users, nil
 }
+
 func (r *userRepository) Update(user user.Model) error {
 	if user.Username != "" {
 		query := `UPDATE users SET username = $1 WHERE id = $2`

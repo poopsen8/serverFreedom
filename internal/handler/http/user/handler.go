@@ -2,7 +2,6 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -86,16 +85,10 @@ func (u *UserHandler) User(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) Users(w http.ResponseWriter, r *http.Request) {
 	plans, err := u.serv.Users()
 	if err != nil {
-		fmt.Printf("\"jgsjfghklfsf\": %v\n", "jgsjfghklfsf")
-		fmt.Printf("plans: %v\n", plans)
-		fmt.Printf("err: %v\n", err)
 		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
-	fmt.Printf("\"aaaaoaoaooaoaoa\": %v\n", "aooaoaoa")
 
-	fmt.Printf("plans: %v\n", plans)
-	fmt.Printf("err: %v\n", err)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(plans)
 }
