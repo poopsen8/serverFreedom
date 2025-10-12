@@ -16,8 +16,8 @@ func NewUserRepository(db *sql.DB) *userRepository {
 }
 
 func (r *userRepository) Create(user user.Model) error {
-	query := `INSERT INTO users (id, username , operator_id) VALUES ($1, $2, $3) RETURNING id`
-	return r.db.QueryRow(query, user.ID, user.Username, user.MobileOperatorID).Scan(&user.ID)
+	query := `INSERT INTO users (id, username) VALUES ($1, $2, $3) RETURNING id`
+	return r.db.QueryRow(query, user.ID, user.Username).Scan(&user.ID)
 }
 
 func (r *userRepository) User(id int64) (*user.FullModel, error) {

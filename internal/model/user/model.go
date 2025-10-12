@@ -9,7 +9,7 @@ type Model struct {
 	ID               int64     `json:"id"`
 	Username         string    `json:"username"`
 	CreateAt         time.Time `json:"create_at"`
-	MobileOperatorID int       `json:"operator_id"`
+	MobileOperatorID int64     `json:"operator_id"`
 	TotalSum         int       `json:"total_sum"`
 	IsTrial          bool      `json:"is_trial"`
 }
