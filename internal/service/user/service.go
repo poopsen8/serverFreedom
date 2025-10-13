@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"userServer/internal/model/user"
 	"userServer/internal/service/operetor"
 )
@@ -38,6 +39,7 @@ func (s *UserService) User(id int64) (*user.FullModel, error) {
 	if user.MobileOperator.ID == 0 {
 		return user, nil
 	}
+
 	operator, err := s.oper.Operator(user.MobileOperator.ID)
 	if err != nil {
 		return nil, err
@@ -48,5 +50,11 @@ func (s *UserService) User(id int64) (*user.FullModel, error) {
 }
 
 func (s *UserService) Update(u user.Model) error {
+	if u.MobileOperatorID != 0 {
+		_, err := s.oper.Operator(u.MobileOperatorID)
+		if err != nil {
+			return errors.New(err.Error() + " operator")
+		}
+	}
 	return s.repo.Update(u)
 }
