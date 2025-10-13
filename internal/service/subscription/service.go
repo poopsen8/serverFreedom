@@ -80,7 +80,7 @@ func (s *SubscriptionService) Subscriptions() ([]*subscription.Model, error) {
 }
 
 func (s *SubscriptionService) newKey() string {
-	keySize := 16 //TODO добавить в конфиг
+	keySize := 4 //TODO добавить в конфиг
 
 	keyBytes := make([]byte, keySize)
 	_, err := rand.Read(keyBytes)
