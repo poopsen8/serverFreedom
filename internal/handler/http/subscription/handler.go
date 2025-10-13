@@ -64,6 +64,7 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 			writeJSONError(w, http.StatusBadRequest, "operator not found")
 			return
 		}
+
 		writeJSONError(w, 500, err.Error())
 		return
 	}
@@ -132,7 +133,11 @@ func (h *SubscriptionHandler) Subscription(w http.ResponseWriter, r *http.Reques
 
 	sub, err := h.serv.Subscription(id)
 	if err != nil {
-		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
+		if strings.Contains(err.Error(), "no rows in result set") {
+			writeJSONError(w, http.StatusOK, fmt.Sprintf("%d subscription not found", id))
+			return
+		}
+		writeJSONError(w, 500, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 
