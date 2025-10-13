@@ -10,7 +10,6 @@ services:
       - "8080:8080"
     volumes:
       - ./config:/root/config
-    user: "1000:1000" 
     restart: unless-stopped
 
   db:
