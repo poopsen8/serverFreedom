@@ -16,7 +16,7 @@ import (
 type repository interface {
 	Subscription(id int64) (*subscription.FullModel, error)
 	Subscriptions() ([]*subscription.Model, error)
-	AddSubscription(subscription.Model) error
+	AddSubscription(subscription.FullModel) error
 	UpdateKey(id int64, key string) error
 	Delete(id int64) error
 	GetSubscriptionsForCheck() ([]*subscription.Model, error)
@@ -105,10 +105,10 @@ func (s *SubscriptionService) UpdateKey(id int64) (string, error) {
 	return key, nil
 }
 
-func (s *SubscriptionService) AddSubscription(u *subscription.Model) (*subscription.Model, error) {
+func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subscription.FullModel, error) {
 	u.Key = s.newKey()
 
-	pl, err := s.pl.Plan(int64(u.Plan_id))
+	pl, err := s.pl.Plan(int64(u.Plan.ID))
 	if err != nil {
 		return nil, errors.New(err.Error() + "plan")
 	}

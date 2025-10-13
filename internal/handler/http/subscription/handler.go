@@ -15,7 +15,7 @@ import (
 type service interface {
 	Subscription(id int64) (*subscription.FullModel, error)
 	Subscriptions() ([]*subscription.Model, error)
-	AddSubscription(*subscription.Model) (*subscription.Model, error)
+	AddSubscription(*subscription.FullModel) (*subscription.FullModel, error)
 	UpdateKey(id int64) (string, error)
 }
 
@@ -37,7 +37,7 @@ func writeJSONError(w http.ResponseWriter, status int, message string) {
 }
 
 func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Request) {
-	var sub subscription.Model
+	var sub subscription.FullModel
 	if err := json.NewDecoder(r.Body).Decode(&sub); err != nil {
 		fmt.Printf("err.Error(): %v\n", err.Error())
 		writeJSONError(w, httperr.ErrInvalidJSON.StatusRequest, httperr.ErrInvalidJSON.Err.Error())
@@ -56,7 +56,7 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 			return
 		}
 		if strings.Contains(err.Error(), "no rows in result set") && strings.Contains(err.Error(), "plan") {
-			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("%d plan not found", sub.Plan_id))
+			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("%d plan not found", sub.Plan.ID))
 			return
 		}
 
