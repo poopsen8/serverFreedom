@@ -10,6 +10,7 @@ services:
       - "8080:8080"
     volumes:
       - ./config:/root/config
+      - ./config4.json:/root/config4.json:rw
     restart: unless-stopped
 
   db:
@@ -27,4 +28,3 @@ services:
 
 volumes:
   pg_data:
-
