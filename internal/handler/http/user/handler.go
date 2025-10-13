@@ -84,7 +84,7 @@ func (u *UserHandler) User(w http.ResponseWriter, r *http.Request) {
 	usr, err := u.serv.User(id)
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") {
-			writeJSONError(w, http.StatusOK, fmt.Sprintf("%d operator not found", id))
+			writeJSONError(w, http.StatusOK, fmt.Sprintf("%d user not found", id))
 			return
 		}
 		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
