@@ -95,22 +95,20 @@ func (h *SubscriptionHandler) UpdateKey(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	key, err := h.serv.UpdateKey(id)
-	if err != nil {
-		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
+	_, e := h.serv.UpdateKey(id)
+	if e != nil {
+		writeJSONError(w, 500, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
 
-	type sub struct {
-		User_id int64  `json:"user_id"`
-		Key     string `json:"key"`
+	sub, er := h.serv.Subscription(id)
+	if er != nil {
+		writeJSONError(w, 500, httperr.ErrIDNotFound.Err.Error())
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(sub{
-		User_id: id,
-		Key:     key,
-	})
+	json.NewEncoder(w).Encode(sub)
 }
 
 func (h *SubscriptionHandler) Subscription(w http.ResponseWriter, r *http.Request) {
