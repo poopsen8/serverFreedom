@@ -77,7 +77,7 @@ func (r *userRepository) Update(user user.FullModel) error {
         UPDATE users 
         SET username = $1, 
             create_at = $2, 
-            mobile_operator_id = $3, 
+            operator_id = $3, 
             total_sum = $4, 
             is_trial = $5 
         WHERE id = $6`
