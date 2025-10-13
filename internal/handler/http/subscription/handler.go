@@ -139,6 +139,8 @@ func (h *SubscriptionHandler) Subscription(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	sub.Key = fmt.Sprintf("vless://68e717ef-231d-4b99-98a9-d5b10fbd66dc@178.17.62.19:8443/?type=tcp&encryption=none&flow=xtls-rprx-vision&sni=vk.com&fp=chrome&security=reality&pbk=3AmonbEG3-6ScvqykpPb5GeChfWQSr_OUQw_7T9IFQ4&sid=%s#vktest", sub.Key)
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sub)
 }
