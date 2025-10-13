@@ -9,7 +9,7 @@ import (
 type repository interface {
 	Create(u user.Model) error
 	User(id int64) (*user.FullModel, error)
-	Update(u user.Model) error //TODO
+	Update(u user.FullModel) error //TODO
 	Users() ([]*user.Model, error)
 }
 
@@ -49,9 +49,9 @@ func (s *UserService) User(id int64) (*user.FullModel, error) {
 	return user, nil
 }
 
-func (s *UserService) Update(u user.Model) error {
-	if u.MobileOperatorID != 0 {
-		_, err := s.oper.Operator(u.MobileOperatorID)
+func (s *UserService) Update(u user.FullModel) error {
+	if u.MobileOperator.ID != 0 {
+		_, err := s.oper.Operator(u.MobileOperator.ID)
 		if err != nil {
 			return errors.New(err.Error() + " operator")
 		}

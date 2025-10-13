@@ -7,7 +7,6 @@ import (
 	"log"
 	"time"
 	"userServer/internal/model/subscription"
-	modUser "userServer/internal/model/user"
 
 	"userServer/internal/service/operetor"
 	"userServer/internal/service/plan"
@@ -123,10 +122,8 @@ func (s *SubscriptionService) AddSubscription(u *subscription.Model) (*subscript
 		return nil, errors.New("operator not found")
 	}
 
-	var user modUser.Model
-	user.ID = usr.ID
-	user.TotalSum = usr.TotalSum + int(pl.Price)
-	if err := s.us.Update(user); err != nil {
+	usr.TotalSum = usr.TotalSum + int(pl.Price)
+	if err := s.us.Update(*usr); err != nil {
 		return nil, err
 	}
 

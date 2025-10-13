@@ -15,7 +15,7 @@ import (
 type service interface {
 	Create(u user.Model) error
 	User(id int64) (*user.FullModel, error)
-	Update(user user.Model) error
+	Update(user user.FullModel) error
 	Users() ([]*user.Model, error)
 }
 
@@ -108,7 +108,7 @@ func (u *UserHandler) Users(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
-	var usr user.Model
+	var usr user.FullModel
 	if err := json.NewDecoder(r.Body).Decode(&usr); err != nil {
 		writeJSONError(w, httperr.ErrInvalidJSON.StatusRequest, httperr.ErrInvalidJSON.Err.Error())
 		return
@@ -121,7 +121,7 @@ func (u *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	if err := u.serv.Update(usr); err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") && strings.Contains(err.Error(), "operator") {
-			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("%d operator not found", usr.MobileOperatorID))
+			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("%d operator not found", usr.MobileOperator.ID))
 			return
 		}
 

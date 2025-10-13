@@ -72,27 +72,24 @@ func (r *userRepository) Users() ([]*user.Model, error) {
 	return users, nil
 }
 
-func (r *userRepository) Update(user user.Model) error {
-	if user.Username != "" {
-		query := `UPDATE users SET username = $1 WHERE id = $2`
-		_, err := r.db.Exec(query, user.Username, user.ID)
-		return err
-	}
-	if user.MobileOperatorID != 0 {
-		query := `UPDATE users SET operator_id = $1 WHERE id = $2`
-		_, err := r.db.Exec(query, user.MobileOperatorID, user.ID)
-		return err
-	}
-	if !user.IsTrial {
-		query := `UPDATE users SET is_trial = $1 WHERE id = $2`
-		_, err := r.db.Exec(query, user.IsTrial, user.ID)
-		return err
-	}
-	if user.TotalSum != 0 {
-		query := `UPDATE users SET total_sum = $1 WHERE id = $2`
-		_, err := r.db.Exec(query, user.TotalSum, user.ID)
-		return err
-	}
+func (r *userRepository) Update(user user.FullModel) error {
+	query := `
+        UPDATE users 
+        SET username = $1, 
+            create_at = $2, 
+            mobile_operator_id = $3, 
+            total_sum = $4, 
+            is_trial = $5 
+        WHERE id = $6`
 
-	return nil // TODO
+	_, err := r.db.Exec(query,
+		user.Username,
+		user.CreateAt,
+		user.MobileOperator.ID,
+		user.TotalSum,
+		user.IsTrial,
+		user.ID,
+	)
+
+	return err
 }
