@@ -7,8 +7,6 @@ RUN apk add --no-cache git
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY config4.json ./
-
 COPY . .
 
 RUN go build -o user_server ./cmd/server
@@ -19,6 +17,7 @@ WORKDIR /root/
 
 COPY --from=builder /app/user_server .
 
+COPY config4.json ./
 COPY config/config.yaml ./config/config.yaml
 
 EXPOSE 8080
