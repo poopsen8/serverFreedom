@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	httperr "userServer/internal/handler/http"
 	yaml "userServer/internal/model/config/YAML"
@@ -50,6 +51,19 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 
 	u, err := h.serv.AddSubscription(&sub)
 	if err != nil {
+		if strings.Contains(err.Error(), "no rows in result set") && strings.Contains(err.Error(), "user") {
+			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("%d user not found", sub.User_id))
+			return
+		}
+		if strings.Contains(err.Error(), "no rows in result set") && strings.Contains(err.Error(), "plan") {
+			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("%d plan not found", sub.Plan_id))
+			return
+		}
+
+		if strings.Contains(err.Error(), "operator not found") {
+			writeJSONError(w, http.StatusBadRequest, "operator not found")
+			return
+		}
 		writeJSONError(w, 500, err.Error())
 		return
 	}

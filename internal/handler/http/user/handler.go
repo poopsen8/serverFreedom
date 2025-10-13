@@ -87,7 +87,8 @@ func (u *UserHandler) User(w http.ResponseWriter, r *http.Request) {
 			writeJSONError(w, http.StatusOK, fmt.Sprintf("%d user not found", id))
 			return
 		}
-		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
+
+		writeJSONError(w, 500, err.Error())
 		return
 	}
 
@@ -124,7 +125,7 @@ func (u *UserHandler) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		writeJSONError(w, httperr.ErrIDNotFound.StatusRequest, httperr.ErrIDNotFound.Err.Error())
+		writeJSONError(w, 500, err.Error())
 		return
 	}
 

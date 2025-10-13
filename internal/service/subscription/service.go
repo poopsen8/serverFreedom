@@ -3,6 +3,7 @@ package subscription
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"log"
 	"time"
 	"userServer/internal/model/subscription"
@@ -110,12 +111,16 @@ func (s *SubscriptionService) AddSubscription(u *subscription.Model) (*subscript
 
 	pl, err := s.pl.Plan(int64(u.Plan_id))
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error() + "plan")
 	}
 
 	usr, err := s.us.User(u.User_id)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(err.Error() + "user")
+	}
+
+	if usr.MobileOperator.ID == 0 {
+		return nil, errors.New("operator not found")
 	}
 
 	var user modUser.Model
