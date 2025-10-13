@@ -9,7 +9,9 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./config:/root/config
+      - ./config:/root/config  # ← существующий конфиг (остается нетронутым)
+      - ./config4.json:/root/config4.json:rw  # ← монтируем в WORKDIR контейнера
+    user: "1000:1000"
     restart: unless-stopped
 
   db:
