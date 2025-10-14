@@ -14,9 +14,9 @@ type Model struct {
 }
 
 type FullModel struct {
-	User_id    int64
-	Plan       *plan.Model
-	CreateAt   time.Time
-	Expires_at time.Time
-	Key        string
+	User_id    int64       `json:"user_id"`
+	Plan       *plan.Model `json:"plan_id"`
+	CreateAt   time.Time   `json:"create_at"`
+	Expires_at time.Time   `json:"expires_at"`
+	Key        string      `json:"key"`
 }
