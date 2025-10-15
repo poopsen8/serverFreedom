@@ -138,6 +138,19 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		return nil, errors.New("error adding subscriber key")
 	}
 
+	if pl.ID == 15 && !usr.IsTrial { //TODO
+		return nil, errors.New("user permission denied")
+	}
+
 	u.Expires_at = s.determineTermination(u.CreateAt, pl.Duration)
-	return u, s.repo.AddSubscription(*u)
+	if err := s.repo.AddSubscription(*u); err != nil {
+		return u, err
+	}
+
+	if pl.ID == 15 { //TODO
+		usr.IsTrial = false
+		return u, s.us.Update(*usr)
+	}
+
+	return u, nil
 }

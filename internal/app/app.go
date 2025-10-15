@@ -42,7 +42,7 @@ func New(cfg *yaml.RouteConfig) (*App, error) {
 	userRepo := repoUser.NewUserRepository(database)
 	planRepo := repoPlan.NewPlanRepository(database)
 	subscriptionRepo := repoSubscription.NewSubscriptionRepository(database)
-	subscriptionRepo2 := repoJSONSubscription.NewSubscriptionRepository()
+	subscriptionRepo2 := repoJSONSubscription.NewSubscriptionRepository(cfg.DB.Pathconfig)
 
 	operatorService := serviceOperator.NewOperatorService(operatorRepo)
 	planService := servicePlan.NewPlanService(planRepo)

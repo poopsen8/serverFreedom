@@ -12,8 +12,8 @@ type subscriptionRepository struct {
 	filename string
 }
 
-func NewSubscriptionRepository() *subscriptionRepository {
-	configPath := getConfigPath("config4.json") //TODO
+func NewSubscriptionRepository(Path string) *subscriptionRepository {
+	configPath := getConfigPath(Path) //TODO
 	return &subscriptionRepository{
 		filename: configPath,
 	}
