@@ -49,6 +49,11 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if _, err := h.serv.Subscription(sub.User_id); err != nil {
+		writeJSONError(w, http.StatusConflict, fmt.Sprintf("user_id: %s ", sub.User_id))
+		return
+	}
+
 	u, err := h.serv.AddSubscription(&sub)
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") && strings.Contains(err.Error(), "user") {
@@ -66,7 +71,7 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 		}
 
 		if strings.Contains(err.Error(), "duplicate key") && strings.Contains(err.Error(), "duplicate key subscriptions_pkey") {
-			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("Subscription %d already created", sub.User_id))
+			writeJSONError(w, http.StatusConflict, fmt.Sprintf("Subscription %d already created", sub.User_id))
 			return
 		}
 
@@ -75,7 +80,7 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 			return
 		}
 		if strings.Contains(err.Error(), "user permission denied") {
-			writeJSONError(w, http.StatusForbidden, fmt.Sprintf(err.Error()+"user_id: %s ", sub.User_id))
+			writeJSONError(w, http.StatusConflict, fmt.Sprintf(err.Error()+"user_id: %s ", sub.User_id))
 			return
 		}
 
