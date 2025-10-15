@@ -49,11 +49,6 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if _, err := h.serv.Subscription(sub.User_id); err != nil {
-		writeJSONError(w, http.StatusConflict, fmt.Sprintf("user_id: %s ", sub.User_id))
-		return
-	}
-
 	u, err := h.serv.AddSubscription(&sub)
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") && strings.Contains(err.Error(), "user") {
@@ -72,6 +67,10 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 
 		if strings.Contains(err.Error(), "error adding subscriber key") {
 			writeJSONError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		if strings.Contains(err.Error(), "user permission denied") {
+			writeJSONError(w, http.StatusConflict, fmt.Sprintf(err.Error()+"user_id: %s ", sub.User_id))
 			return
 		}
 
