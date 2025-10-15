@@ -135,10 +135,6 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		return nil, errors.New(err.Error() + "user")
 	}
 
-	if sub, err := s.Subscription(usr.ID); err == nil {
-		s.deleteSubscription(sub.User_id, sub.Key)
-	}
-
 	if usr.MobileOperator.ID == 0 {
 		return nil, errors.New("operator not found")
 	}
@@ -152,8 +148,12 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		return nil, errors.New("error adding subscriber key")
 	}
 
-	if pl.ID == 15 && !usr.IsTrial { //TODO
+	if u.Plan.ID == 15 && !usr.IsTrial { //TODO
 		return nil, errors.New("user permission denied")
+	}
+
+	if sub, err := s.Subscription(usr.ID); err == nil {
+		s.deleteSubscription(sub.User_id, sub.Key)
 	}
 
 	u.Expires_at = s.determineTermination(u.CreateAt, pl.Duration)
