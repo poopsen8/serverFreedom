@@ -1,0 +1,137 @@
+{
+  "log": {
+    "level": "error",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "address": "tcp://1.1.1.1",
+        "detour": "internet"
+      },
+      {
+        "address": "tcp://1.0.0.1",
+        "detour": "internet"
+      }
+    ],
+    "strategy": "prefer_ipv4"
+  },
+  "inbounds": [
+    {
+      "type": "direct",
+      "listen": "::",
+      "listen_port": 8080,
+      "network": "tcp",
+      "override_address": "vksport.m.vkvideo.cs7777.vk.com",
+      "override_port": 80
+    },
+    {
+      "type": "trojan",
+      "listen": "::",
+      "listen_port": 443,
+      "sniff": true,
+      "sniff_override_destination": true,
+      "domain_strategy": "prefer_ipv4",
+      "users": [
+        {
+          "name": "RealityEZPZ",
+          "password": "80d50277-7668-4eb8-a3f7-2bcf8ba322d2"
+        }
+      ],
+      "tls": {
+        "enabled": true,
+        "server_name": "cs7777.vk.com",
+        "alpn": [],
+        "reality": {
+          "enabled": true,
+          "handshake": {
+            "server": "vksport.m.vkvideo.cs7777.vk.com",
+            "server_port": 443
+          },
+          "private_key": "iL2GlA23PkCee7FrLpfNi6d2DjhmHnqq53tpKLzTKHQ",
+          "short_id": [
+            "5534f55563af15f5",
+            "bd5ddd40"
+          ],
+          "max_time_difference": "1m"
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "internet"
+    },
+    {
+      "type": "block",
+      "tag": "block"
+    }
+  ],
+  "route": {
+    "final": "internet",
+    "rule_set": [
+      {
+        "tag": "block",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/aleskxyz/sing-box-rules/refs/heads/rule-set/block.srs",
+        "download_detour": "internet"
+      },
+      {
+        "tag": "nsfw",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/aleskxyz/sing-box-rules/refs/heads/rule-set/geosite-nsfw.srs",
+        "download_detour": "internet"
+      },
+      {
+        "tag": "geoip-private",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/aleskxyz/sing-box-rules/refs/heads/rule-set/geoip-private.srs",
+        "download_detour": "internet"
+      },
+      {
+        "tag": "geosite-private",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/aleskxyz/sing-box-rules/refs/heads/rule-set/geosite-private.srs",
+        "download_detour": "internet"
+      },
+      {
+        "tag": "bypass",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/aleskxyz/sing-box-rules/refs/heads/rule-set/bypass.srs",
+        "download_detour": "internet"
+      }
+    ],
+    "rules": [
+      {
+        "rule_set": [
+          "block",
+          "geoip-private",
+          "geosite-private",
+          "bypass"
+        ],
+        "outbound": "block"
+      },
+      {
+        "network": "tcp",
+        "port": [
+          25,
+          587,
+          465,
+          2525
+        ],
+        "outbound": "block"
+      }
+    ]
+  },
+  "experimental": {
+    "cache_file": {
+      "enabled": true
+    }
+  }
+}

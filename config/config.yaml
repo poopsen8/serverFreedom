@@ -3,12 +3,13 @@
 
 
 db:
-  host: db
+  host: localhost
   port: 5432
   user: postgres
   password: postgres
-  name: userdb
+  name: postgres
   sslmode: disable
+  pathconfig: "config4.json"
 
 
  

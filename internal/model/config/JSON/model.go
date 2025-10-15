@@ -1,83 +1,100 @@
 package json
 
-type Config struct {
-	Inbounds  []Inbound  `json:"inbounds"`
-	Outbounds []Outbound `json:"outbounds"`
-	Routing   Routing    `json:"routing"`
+type SingBoxConfig struct {
+	Log          Log          `json:"log"`
+	DNS          DNS          `json:"dns"`
+	Inbounds     []Inbound    `json:"inbounds"`
+	Outbounds    []Outbound   `json:"outbounds"`
+	Route        Route        `json:"route"`
+	Experimental Experimental `json:"experimental"`
+}
+
+type Log struct {
+	Level     string `json:"level"`
+	Timestamp bool   `json:"timestamp"`
+}
+
+type DNS struct {
+	Servers  []DNSServer `json:"servers"`
+	Strategy string      `json:"strategy"`
+}
+
+type DNSServer struct {
+	Address string `json:"address"`
+	Detour  string `json:"detour"`
 }
 
 type Inbound struct {
-	Listen         string         `json:"listen"`
-	Port           int            `json:"port"`
-	Protocol       string         `json:"protocol"`
-	Settings       Settings       `json:"settings"`
-	StreamSettings StreamSettings `json:"streamSettings"`
-	Sniffing       Sniffing       `json:"sniffing"`
+	Type                     string `json:"type"`
+	Listen                   string `json:"listen"`
+	ListenPort               int    `json:"listen_port"`
+	Network                  string `json:"network,omitempty"`
+	Sniff                    bool   `json:"sniff,omitempty"`
+	SniffOverrideDestination bool   `json:"sniff_override_destination,omitempty"`
+	DomainStrategy           string `json:"domain_strategy,omitempty"`
+	OverrideAddress          string `json:"override_address,omitempty"`
+	OverridePort             int    `json:"override_port,omitempty"`
+
+	// Trojan-specific
+	Users []User `json:"users,omitempty"`
+	TLS   *TLS   `json:"tls,omitempty"`
 }
 
-type Settings struct {
-	Clients    []Client `json:"clients"`
-	Decryption string   `json:"decryption"`
+type User struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
 }
 
-type Client struct {
-	ID   string `json:"id"`
-	Flow string `json:"flow"`
+type TLS struct {
+	Enabled    bool     `json:"enabled"`
+	ServerName string   `json:"server_name"`
+	ALPN       []string `json:"alpn"`
+	Reality    *Reality `json:"reality"`
 }
 
-type StreamSettings struct {
-	Network         string          `json:"network"`
-	Security        string          `json:"security"`
-	RealitySettings RealitySettings `json:"realitySettings"`
+type Reality struct {
+	Enabled           bool      `json:"enabled"`
+	Handshake         Handshake `json:"handshake"`
+	PrivateKey        string    `json:"private_key"`
+	ShortID           []string  `json:"short_id"`
+	MaxTimeDifference string    `json:"max_time_difference"`
 }
 
-type RealitySettings struct {
-	Show         bool     `json:"show"`
-	Dest         string   `json:"dest"`
-	Xver         int      `json:"xver"`
-	ServerNames  []string `json:"serverNames"`
-	PrivateKey   string   `json:"privateKey"`
-	MinClientVer string   `json:"minClientVer"`
-	MaxClientVer string   `json:"maxClientVer"`
-	MaxTimeDiff  int      `json:"maxTimeDiff"`
-	ShortIds     []string `json:"shortIds"`
-}
-
-type Sniffing struct {
-	Enabled      bool     `json:"enabled"`
-	DestOverride []string `json:"destOverride"`
-	MetadataOnly bool     `json:"metadataOnly"`
-	RouteOnly    bool     `json:"routeOnly"`
+type Handshake struct {
+	Server     string `json:"server"`
+	ServerPort int    `json:"server_port"`
 }
 
 type Outbound struct {
-	Protocol       string                 `json:"protocol"`
-	Tag            string                 `json:"tag"`
-	Settings       OutboundSettings       `json:"settings"`
-	StreamSettings OutboundStreamSettings `json:"streamSettings"`
+	Type string `json:"type"`
+	Tag  string `json:"tag"`
 }
 
-type OutboundSettings struct {
-	DomainStrategy string `json:"domainStrategy"`
-	Redirect       string `json:"redirect"`
+type Route struct {
+	Final   string    `json:"final"`
+	RuleSet []RuleSet `json:"rule_set"`
+	Rules   []Rule    `json:"rules"`
 }
 
-type OutboundStreamSettings struct {
-	Sockopt Sockopt `json:"sockopt"`
-}
-
-type Sockopt struct {
-	TcpFastOpen bool   `json:"tcpFastOpen"`
-	Tproxy      string `json:"tproxy"`
-}
-
-type Routing struct {
-	DomainStrategy string `json:"domainStrategy"`
-	Rules          []Rule `json:"rules"`
+type RuleSet struct {
+	Tag            string `json:"tag"`
+	Type           string `json:"type"`
+	Format         string `json:"format"`
+	URL            string `json:"url"`
+	DownloadDetour string `json:"download_detour"`
 }
 
 type Rule struct {
-	Type        string   `json:"type"`
-	IP          []string `json:"ip"`
-	OutboundTag string   `json:"outboundTag"`
+	RuleSet  []string `json:"rule_set,omitempty"`
+	Network  string   `json:"network,omitempty"`
+	Port     []int    `json:"port,omitempty"`
+	Outbound string   `json:"outbound"`
+}
+
+type Experimental struct {
+	CacheFile CacheFile `json:"cache_file"`
+}
+
+type CacheFile struct {
+	Enabled bool `json:"enabled"`
 }

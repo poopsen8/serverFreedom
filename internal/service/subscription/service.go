@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"log"
 	"time"
 	"userServer/internal/model/subscription"
@@ -145,6 +146,7 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 	}
 
 	if err := s.js.AddKey(u.Key); err != nil {
+		fmt.Printf("err.Error(): %v\n", err.Error())
 		return nil, errors.New("error adding subscriber key")
 	}
 
