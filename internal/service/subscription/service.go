@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"log"
 	"time"
 	"userServer/internal/model/subscription"
@@ -147,13 +146,6 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 
 	if err := s.js.AddKey(u.Key); err != nil {
 		return nil, errors.New("error adding subscriber key")
-	}
-
-	fmt.Printf("u.Plan.ID: %v\n", u.Plan.ID)
-	fmt.Printf("usr.IsTrial: %v\n", usr.IsTrial)
-	if u.Plan.ID == 15 && !usr.IsTrial { //TODO
-		fmt.Printf("это пиздец")
-		return nil, errors.New("user permission denied")
 	}
 
 	if sub, err := s.Subscription(usr.ID); err == nil {
