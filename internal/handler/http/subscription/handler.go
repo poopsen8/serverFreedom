@@ -70,7 +70,7 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		if strings.Contains(err.Error(), "duplicate key") && strings.Contains(err.Error(), "duplicate key subscriptions_pkey") {
+		if strings.Contains(err.Error(), "duplicate key") && strings.Contains(err.Error(), "subscriptions_pkey") {
 			writeJSONError(w, http.StatusConflict, fmt.Sprintf("Subscription %d already created", sub.User_id))
 			return
 		}
