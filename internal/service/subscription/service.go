@@ -125,6 +125,11 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		return nil, errors.New(err.Error() + "user")
 	}
 
+	if _, err := s.Subscription(usr.ID); err != nil {
+		return nil, errors.New("duplicate key subscriptions_pkey")
+
+	}
+
 	if usr.MobileOperator.ID == 0 {
 		return nil, errors.New("operator not found")
 	}
