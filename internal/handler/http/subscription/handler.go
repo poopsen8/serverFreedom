@@ -65,7 +65,7 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 			return
 		}
 
-		if strings.Contains(err.Error(), "duplicate key") && strings.Contains(err.Error(), "subscriptions_pkey") {
+		if strings.Contains(err.Error(), "duplicate key") && strings.Contains(err.Error(), "duplicate key subscriptions_pkey") {
 			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("Subscription %d already created", sub.User_id))
 			return
 		}
@@ -120,8 +120,11 @@ func (h *SubscriptionHandler) UpdateKey(w http.ResponseWriter, r *http.Request) 
 		writeJSONError(w, 500, httperr.ErrIDNotFound.Err.Error())
 		return
 	}
-	sub.Key = fmt.Sprintf("vless://68e717ef-231d-4b99-98a9-d5b10fbd66dc@178.17.62.19:8443/?type=tcp&encryption=none&flow=xtls-rprx-vision&sni=vk.com&fp=chrome&security=reality&pbk=3AmonbEG3-6ScvqykpPb5GeChfWQSr_OUQw_7T9IFQ4&sid=%s#vktest", sub.Key)
 
+	sub.Key = fmt.Sprintf(
+		"trojan://4cgbmbBKQO@178.17.62.19:443?type=tcp&security=reality&pbk=rmn4ibN95iKGTKXyDpGvEWXYcl1SAe28rt644tBV6VE&fp=chrome&sni=st.max.ru&%s&spx=%%2F#mgl5gsxv",
+		sub.Key,
+	)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sub)
 }
@@ -154,8 +157,10 @@ func (h *SubscriptionHandler) Subscription(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	sub.Key = fmt.Sprintf("vless://68e717ef-231d-4b99-98a9-d5b10fbd66dc@178.17.62.19:8443/?type=tcp&encryption=none&flow=xtls-rprx-vision&sni=vk.com&fp=chrome&security=reality&pbk=3AmonbEG3-6ScvqykpPb5GeChfWQSr_OUQw_7T9IFQ4&sid=%s#vktest", sub.Key)
-
+	sub.Key = fmt.Sprintf(
+		"trojan://4cgbmbBKQO@178.17.62.19:443?type=tcp&security=reality&pbk=rmn4ibN95iKGTKXyDpGvEWXYcl1SAe28rt644tBV6VE&fp=chrome&sni=st.max.ru&%s&spx=%%2F#mgl5gsxv",
+		sub.Key,
+	)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sub)
 }
