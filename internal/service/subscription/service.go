@@ -53,6 +53,17 @@ func (s *SubscriptionService) Subscription(id int64) (*subscription.FullModel, e
 	return sub, nil
 }
 
+func (s *SubscriptionService) deleteSubscription(id int64, key string) error {
+	err := s.repo.Delete(id)
+	if err != nil {
+		return err
+	}
+
+	s.js.RemoveKey(key) //TODO
+	return nil
+
+}
+
 func (s *SubscriptionService) BackgroundCheck() error {
 	subscriptions, _ := s.repo.GetSubscriptionsForCheck() //TODO
 
@@ -61,14 +72,13 @@ func (s *SubscriptionService) BackgroundCheck() error {
 
 	for _, sub := range subscriptions {
 		if sub.Expires_at.Before(now) {
-			err := s.repo.Delete(sub.User_id)
+			err := s.deleteSubscription(sub.User_id, sub.Key)
 			if err != nil {
 				continue
 			}
 
 			expiredCount++
 			log.Printf("Подписка пользователя %d истекла", sub.User_id) //TODO отпровлять что все пиздец конец подписьки
-			s.js.RemoveKey(sub.Key)                                     // TODO
 
 		}
 	}
@@ -125,9 +135,8 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		return nil, errors.New(err.Error() + "user")
 	}
 
-	if _, err := s.Subscription(usr.ID); err != nil {
-		return nil, errors.New("duplicate key subscriptions_pkey")
-
+	if sub, err := s.Subscription(usr.ID); err == nil {
+		s.deleteSubscription(sub.User_id, sub.Key)
 	}
 
 	if usr.MobileOperator.ID == 0 {

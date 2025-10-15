@@ -25,7 +25,7 @@ func main() {
 	router := mux.NewRouter()
 	application.RegisterRoutes(router)
 
-	addr := ":8080"
+	addr := ":8082"
 	log.Printf("✅✅✅ Сервер запущен на %s ✅✅✅", addr)
 	if err := http.ListenAndServe(addr, router); err != nil {
 		log.Fatalf("❌❌❌ Ошибка запуска сервера: %v ❌❌❌", err)
