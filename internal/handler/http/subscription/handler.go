@@ -74,6 +74,10 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 			writeJSONError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+		if strings.Contains(err.Error(), "user permission denied") {
+			writeJSONError(w, http.StatusConflict, fmt.Sprintf(err.Error()+"user_id: %s ", sub.User_id))
+			return
+		}
 
 		writeJSONError(w, 500, err.Error())
 		return
