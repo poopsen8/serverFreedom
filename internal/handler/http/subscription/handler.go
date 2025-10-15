@@ -70,6 +70,11 @@ func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Req
 			return
 		}
 
+		if strings.Contains(err.Error(), "error adding subscriber key") {
+			writeJSONError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
 		writeJSONError(w, 500, err.Error())
 		return
 	}

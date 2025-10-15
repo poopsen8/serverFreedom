@@ -105,6 +105,13 @@ func (s *SubscriptionService) UpdateKey(id int64) (string, error) {
 	return key, nil
 }
 
+func (s *SubscriptionService) determineTermination(CreatedAt time.Time, Duration int64) time.Time {
+	Expires_at := CreatedAt
+	duration := time.Duration(Duration) * time.Minute
+	Expires_at = CreatedAt.Add(duration)
+	return Expires_at
+}
+
 func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subscription.FullModel, error) {
 	u.Key = s.newKey()
 
@@ -127,6 +134,10 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		return nil, err
 	}
 
-	s.js.AddKey(u.Key)
+	if err := s.js.AddKey(u.Key); err != nil {
+		return nil, errors.New("error adding subscriber key")
+	}
+
+	u.Expires_at = s.determineTermination(u.CreateAt, pl.Duration)
 	return u, s.repo.AddSubscription(*u)
 }
