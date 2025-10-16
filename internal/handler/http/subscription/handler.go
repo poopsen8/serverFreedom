@@ -129,6 +129,7 @@ func (h *SubscriptionHandler) AddSubscription(user_id int64, plan_id int) {
 		return
 	}
 
+	sub.Key = h.rCfg.Link.Left_part + sub.Key + h.rCfg.Link.Right_part
 	// Отправка успешного результата
 	u, err := json.Marshal(sub)
 	if err != nil {
@@ -174,10 +175,7 @@ func (h *SubscriptionHandler) UpdateKey(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	sub.Key = fmt.Sprintf(
-		"trojan://4cgbmbBKQO@178.17.62.19:443?type=tcp&security=reality&pbk=rmn4ibN95iKGTKXyDpGvEWXYcl1SAe28rt644tBV6VE&fp=chrome&sni=st.max.ru&%s&spx=%%2F#mgl5gsxv",
-		sub.Key,
-	)
+	sub.Key = h.rCfg.Link.Left_part + sub.Key + h.rCfg.Link.Right_part
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sub)
 }
@@ -210,10 +208,7 @@ func (h *SubscriptionHandler) Subscription(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	sub.Key = fmt.Sprintf(
-		"trojan://4cgbmbBKQO@178.17.62.19:443?type=tcp&security=reality&pbk=rmn4ibN95iKGTKXyDpGvEWXYcl1SAe28rt644tBV6VE&fp=chrome&sni=st.max.ru&%s&spx=%%2F#mgl5gsxv",
-		sub.Key,
-	)
+	sub.Key = h.rCfg.Link.Left_part + sub.Key + h.rCfg.Link.Right_part
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(sub)
 }

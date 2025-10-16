@@ -1,9 +1,10 @@
 package yaml
 
 type Config struct {
-	Yoomoney *Yoomoney `yaml:"yoomoney" env-required:"true"`
-	Database *DBConfig `yaml:"db"`
-	PathSend *Path     `yaml:"path"`
+	Yoomoney *Yoomoney      `yaml:"yoomoney" env-required:"true"`
+	Database *DBConfig      `yaml:"db"`
+	PathSend *Path          `yaml:"path"`
+	Link     ConnectionLink `yaml:"connection_link"`
 }
 
 type DBConfig struct {
@@ -30,4 +31,8 @@ type YoomoneyReceiver struct {
 
 type Path struct {
 	Base_url string `yaml:"base_url"`
+}
+type ConnectionLink struct {
+	Left_part  string `yaml:"left_part"`
+	Right_part string `yaml:"right_part"`
 }

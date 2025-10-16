@@ -21,5 +21,11 @@ yoomoney:
     notification_secret: "Kr3E8Gsh4Jh6MYESOGYXAlXs"
 
 
-pach:
-  base_url: "85.142.90.53:8080"
+path:
+  base_url: "85.142.90.53:8080" 
+
+
+
+connection_link:
+  left_part: "trojan://80d50277-7668-4eb8-a3f7-2bcf8ba322d2@178.17.62.19:443?security=reality&alpn=h2%2Chttp%2F1.1&headerType=none&fp=chrome&type=tcp&sni="
+  right_part: ".vk.com&pbk=yz5xhUPJjApMBRLa-Dw2OKVe4-ckCXNjv17HDjo5tnI&sid=5534f55563af15f5#WideGrid"
