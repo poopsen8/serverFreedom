@@ -22,7 +22,7 @@ yoomoney:
 
 
 path:
-  base_url: "85.142.90.53:8080" 
+  base_url: "85.142.90.53:8080/payment" 
 
 
 
