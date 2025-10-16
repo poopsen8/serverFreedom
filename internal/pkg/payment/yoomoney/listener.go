@@ -4,6 +4,7 @@ import (
 	"crypto/sha1"
 	"crypto/subtle"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 	"strings"
 	config "userServer/internal/model/config/YAML"
@@ -22,9 +23,14 @@ func PaymentHandler(cfg *config.Yoomoney, validator func(n *yoomoney.Notificatio
 			return
 		}
 
-		_, err := VerifySignature(r, cfg.Receiver.NotifSecret)
+		fmt.Println(cfg)
+		isValid, err := VerifySignature(r, cfg.Receiver.NotifSecret)
 		if err != nil {
 			http.Error(w, "Error verifying signature", http.StatusInternalServerError)
+			return
+		}
+		if !isValid {
+			http.Error(w, "Invalid signature", http.StatusForbidden)
 			return
 		}
 

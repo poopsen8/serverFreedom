@@ -44,6 +44,7 @@ func writeJSONError(w http.ResponseWriter, status int, message string) {
 
 func (h *SubscriptionHandler) Validator(n *y.Notification) {
 
+	fmt.Println("sklfjsdjklffkjfjkadhjlfkjfh")
 	user_id, _ := h.serv.CheckPayment(n)
 
 	values, _ := url.ParseQuery(n.Label)
