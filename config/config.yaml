@@ -22,7 +22,7 @@ yoomoney:
 
 
 path:
-  base_url: "widegrid.site/payment" 
+  base_url: "widegrid.site/bot/payment" 
 
 
 
