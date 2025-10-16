@@ -67,9 +67,7 @@ func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request)
 	price := sub.Plan.Price - ((sub.Plan.Price / 100) * sub.Plan.Discount)
 	url, _ := p.Build(l, int(price))
 
-	if err := h.serv.AddPayment(sub.User_id, l, int(price)); err != nil {
-		writeJSONError(w, http.StatusInternalServerError, err.Error())
-	}
+	h.serv.AddPayment(sub.User_id, l, int(price))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
