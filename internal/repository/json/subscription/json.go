@@ -31,11 +31,10 @@ func getConfigPath(filename string) string {
 	return filepath.Join("", filename)
 }
 
-// AddKey добавляет новый ключ в realitySettings троjan инбаунда
+// AddKey добавляет новый ключ в realitySettings trojan инбаунда
 func (sr *subscriptionRepository) AddKey(key string) error {
 	config, err := sr.readConfig()
 	if err != nil {
-		fmt.Println(err)
 		return fmt.Errorf("ошибка чтения конфигурации: %v", err)
 	}
 
@@ -81,23 +80,22 @@ func (sr *subscriptionRepository) RemoveKey(key string) error {
 	}
 
 	found := false
+	newShortIDs := make([]string, 0, len(trojanInbound.TLS.Reality.ShortID))
 
 	// Ищем и удаляем ключ
-	for i, existingKey := range trojanInbound.TLS.Reality.ShortID {
+	for _, existingKey := range trojanInbound.TLS.Reality.ShortID {
 		if existingKey == key {
-			trojanInbound.TLS.Reality.ShortID = append(
-				trojanInbound.TLS.Reality.ShortID[:i],
-				trojanInbound.TLS.Reality.ShortID[i+1:]...,
-			)
 			found = true
-			break
+			continue
 		}
+		newShortIDs = append(newShortIDs, existingKey)
 	}
 
 	if !found {
 		return fmt.Errorf("ключ '%s' не найден", key)
 	}
 
+	trojanInbound.TLS.Reality.ShortID = newShortIDs
 	return sr.writeConfig(config)
 }
 
@@ -173,7 +171,7 @@ func (sr *subscriptionRepository) readConfig() (*config.SingBoxConfig, error) {
 
 	err = json.Unmarshal(data, &config)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ошибка парсинга JSON: %v", err)
 	}
 
 	return &config, nil
@@ -183,7 +181,7 @@ func (sr *subscriptionRepository) readConfig() (*config.SingBoxConfig, error) {
 func (sr *subscriptionRepository) writeConfig(config *config.SingBoxConfig) error {
 	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("ошибка маршалинга JSON: %v", err)
 	}
 
 	return os.WriteFile(sr.filename, data, 0644)

@@ -1,20 +1,20 @@
-package json
+package config
 
 type SingBoxConfig struct {
-	Log          Log          `json:"log"`
-	DNS          DNS          `json:"dns"`
+	Log          LogConfig    `json:"log"`
+	DNS          DNSConfig    `json:"dns"`
 	Inbounds     []Inbound    `json:"inbounds"`
 	Outbounds    []Outbound   `json:"outbounds"`
-	Route        Route        `json:"route"`
+	Route        RouteConfig  `json:"route"`
 	Experimental Experimental `json:"experimental"`
 }
 
-type Log struct {
+type LogConfig struct {
 	Level     string `json:"level"`
 	Timestamp bool   `json:"timestamp"`
 }
 
-type DNS struct {
+type DNSConfig struct {
 	Servers  []DNSServer `json:"servers"`
 	Strategy string      `json:"strategy"`
 }
@@ -25,17 +25,17 @@ type DNSServer struct {
 }
 
 type Inbound struct {
-	Type                     string `json:"type"`
-	Listen                   string `json:"listen"`
-	ListenPort               int    `json:"listen_port"`
-	Network                  string `json:"network,omitempty"`
-	OverrideAddress          string `json:"override_address,omitempty"`
-	OverridePort             int    `json:"override_port,omitempty"`
-	Sniff                    bool   `json:"sniff,omitempty"`
-	SniffOverrideDestination bool   `json:"sniff_override_destination,omitempty"`
-	DomainStrategy           string `json:"domain_strategy,omitempty"`
-	Users                    []User `json:"users,omitempty"`
-	TLS                      *TLS   `json:"tls,omitempty"`
+	Type                     string     `json:"type"`
+	Listen                   string     `json:"listen"`
+	ListenPort               int        `json:"listen_port"`
+	Network                  string     `json:"network,omitempty"`
+	OverrideAddress          string     `json:"override_address,omitempty"`
+	OverridePort             int        `json:"override_port,omitempty"`
+	Sniff                    bool       `json:"sniff,omitempty"`
+	SniffOverrideDestination bool       `json:"sniff_override_destination,omitempty"`
+	DomainStrategy           string     `json:"domain_strategy,omitempty"`
+	Users                    []User     `json:"users,omitempty"`
+	TLS                      *TLSConfig `json:"tls,omitempty"`
 }
 
 type User struct {
@@ -43,22 +43,22 @@ type User struct {
 	Password string `json:"password"`
 }
 
-type TLS struct {
-	Enabled    bool     `json:"enabled"`
-	ServerName string   `json:"server_name"`
-	ALPN       []string `json:"alpn"`
-	Reality    *Reality `json:"reality,omitempty"`
+type TLSConfig struct {
+	Enabled    bool           `json:"enabled"`
+	ServerName string         `json:"server_name"`
+	ALPN       []string       `json:"alpn"`
+	Reality    *RealityConfig `json:"reality"`
 }
 
-type Reality struct {
-	Enabled           bool      `json:"enabled"`
-	Handshake         Handshake `json:"handshake"`
-	PrivateKey        string    `json:"private_key"`
-	ShortID           []string  `json:"short_id"`
-	MaxTimeDifference string    `json:"max_time_difference"`
+type RealityConfig struct {
+	Enabled           bool            `json:"enabled"`
+	Handshake         HandshakeConfig `json:"handshake"`
+	PrivateKey        string          `json:"private_key"`
+	ShortID           []string        `json:"short_id"`
+	MaxTimeDifference string          `json:"max_time_difference"`
 }
 
-type Handshake struct {
+type HandshakeConfig struct {
 	Server     string `json:"server"`
 	ServerPort int    `json:"server_port"`
 }
@@ -68,7 +68,7 @@ type Outbound struct {
 	Tag  string `json:"tag"`
 }
 
-type Route struct {
+type RouteConfig struct {
 	Final   string    `json:"final"`
 	RuleSet []RuleSet `json:"rule_set"`
 	Rules   []Rule    `json:"rules"`
@@ -90,9 +90,9 @@ type Rule struct {
 }
 
 type Experimental struct {
-	CacheFile CacheFile `json:"cache_file"`
+	CacheFile CacheFileConfig `json:"cache_file"`
 }
 
-type CacheFile struct {
+type CacheFileConfig struct {
 	Enabled bool `json:"enabled"`
 }
