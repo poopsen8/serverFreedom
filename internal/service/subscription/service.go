@@ -56,7 +56,9 @@ func (s *SubscriptionService) AddPayment(id int64, label string, price int) erro
 
 }
 
-func (s *SubscriptionService) CheckPayment(n *yoomoney.Notification) error
+func (s *SubscriptionService) CheckPayment(n *yoomoney.Notification) error {
+	return s.repo.CheckPayment(n)
+}
 
 func (s *SubscriptionService) Subscription(id int64) (*subscription.FullModel, error) {
 	sub, errS := s.repo.Subscription(id) // TODO

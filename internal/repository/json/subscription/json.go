@@ -4,119 +4,170 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
-	config "userServer/internal/model/config/JSON"
 )
 
-type subscriptionRepository struct {
-	filename string
+type SubscriptionRepository struct {
+	filePath string
 }
 
-func NewSubscriptionRepository(Path string) *subscriptionRepository {
-	configPath := getConfigPath(Path)
-	return &subscriptionRepository{
-		filename: configPath,
-	}
+func NewSubscriptionRepository(filePath string) *SubscriptionRepository {
+	return &SubscriptionRepository{filePath: filePath}
 }
 
-func getConfigPath(filename string) string {
-	exe, _ := os.Executable()
-	exeDir := filepath.Dir(exe)
-	localPath := filepath.Join(exeDir, filename)
-
-	if _, err := os.Stat(localPath); err == nil {
-		return localPath
-	}
-
-	return filepath.Join("", filename)
-}
-
-// AddKey добавляет новый ключ в realitySettings trojan инбаунда
-func (sr *subscriptionRepository) AddKey(key string) error {
-	config, err := sr.readConfig()
+func (sr *SubscriptionRepository) loadConfig() (map[string]interface{}, error) {
+	data, err := os.ReadFile(sr.filePath)
 	if err != nil {
-		return fmt.Errorf("ошибка чтения конфигурации: %v", err)
+		return nil, fmt.Errorf("failed to read config file: %v", err)
 	}
 
-	// Находим trojan inbound
-	trojanInbound, err := sr.findTrojanInbound(config)
+	var config map[string]interface{}
+	if err := json.Unmarshal(data, &config); err != nil {
+		return nil, fmt.Errorf("failed to parse config: %v", err)
+	}
+
+	return config, nil
+}
+
+func (sr *SubscriptionRepository) saveConfig(config map[string]interface{}) error {
+	data, err := json.MarshalIndent(config, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal config: %v", err)
+	}
+
+	if err := os.WriteFile(sr.filePath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write config file: %v", err)
+	}
+
+	return nil
+}
+
+func (sr *SubscriptionRepository) findRealityConfig(config map[string]interface{}) (map[string]interface{}, error) {
+	inbounds, ok := config["inbounds"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("inbounds not found or not an array")
+	}
+
+	for _, inbound := range inbounds {
+		inboundMap, ok := inbound.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		tls, ok := inboundMap["tls"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		reality, ok := tls["reality"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		return reality, nil
+	}
+
+	return nil, fmt.Errorf("reality config not found")
+}
+
+func (sr *SubscriptionRepository) AddKey(key string) error {
+	config, err := sr.loadConfig()
 	if err != nil {
 		return err
 	}
 
-	// Проверяем, что reality настроен
-	if trojanInbound.TLS == nil || trojanInbound.TLS.Reality == nil {
-		return fmt.Errorf("reality не настроен в trojan inbound")
+	reality, err := sr.findRealityConfig(config)
+	if err != nil {
+		return err
 	}
 
-	// Проверяем, нет ли уже такого ключа
-	for _, existingKey := range trojanInbound.TLS.Reality.ShortID {
-		if existingKey == key {
-			return fmt.Errorf("ключ '%s' уже существует", key)
+	shortIDInterface, exists := reality["short_id"]
+	if !exists {
+		// Если short_id не существует, создаем новый массив
+		reality["short_id"] = []interface{}{key}
+		return sr.saveConfig(config)
+	}
+
+	shortIDs, ok := shortIDInterface.([]interface{})
+	if !ok {
+		return fmt.Errorf("short_id is not an array")
+	}
+
+	// Проверяем, существует ли ключ уже
+	for _, item := range shortIDs {
+		if itemStr, ok := item.(string); ok && itemStr == key {
+			return fmt.Errorf("key %s already exists", key)
 		}
 	}
 
-	// Добавляем ключ
-	trojanInbound.TLS.Reality.ShortID = append(trojanInbound.TLS.Reality.ShortID, key)
-
-	// Сохраняем изменения
-	return sr.writeConfig(config)
+	// Добавляем новый ключ
+	reality["short_id"] = append(shortIDs, key)
+	return sr.saveConfig(config)
 }
 
-// RemoveKey удаляет ключ из realitySettings trojan инбаунда
-func (sr *subscriptionRepository) RemoveKey(key string) error {
-	config, err := sr.readConfig()
-	if err != nil {
-		return fmt.Errorf("ошибка чтения конфигурации: %v", err)
-	}
-
-	trojanInbound, err := sr.findTrojanInbound(config)
+func (sr *SubscriptionRepository) RemoveKey(key string) error {
+	config, err := sr.loadConfig()
 	if err != nil {
 		return err
 	}
 
-	if trojanInbound.TLS == nil || trojanInbound.TLS.Reality == nil {
-		return fmt.Errorf("reality не настроен в trojan inbound")
+	reality, err := sr.findRealityConfig(config)
+	if err != nil {
+		return err
 	}
 
-	found := false
-	newShortIDs := make([]string, 0, len(trojanInbound.TLS.Reality.ShortID))
+	shortIDInterface, exists := reality["short_id"]
+	if !exists {
+		return fmt.Errorf("short_id not found")
+	}
 
-	// Ищем и удаляем ключ
-	for _, existingKey := range trojanInbound.TLS.Reality.ShortID {
-		if existingKey == key {
+	shortIDs, ok := shortIDInterface.([]interface{})
+	if !ok {
+		return fmt.Errorf("short_id is not an array")
+	}
+
+	// Создаем новый массив без удаляемого ключа
+	newShortIDs := make([]interface{}, 0, len(shortIDs))
+	found := false
+
+	for _, item := range shortIDs {
+		if itemStr, ok := item.(string); ok && itemStr == key {
 			found = true
 			continue
 		}
-		newShortIDs = append(newShortIDs, existingKey)
+		newShortIDs = append(newShortIDs, item)
 	}
 
 	if !found {
-		return fmt.Errorf("ключ '%s' не найден", key)
+		return fmt.Errorf("key %s not found", key)
 	}
 
-	trojanInbound.TLS.Reality.ShortID = newShortIDs
-	return sr.writeConfig(config)
+	reality["short_id"] = newShortIDs
+	return sr.saveConfig(config)
 }
 
-// KeyExists проверяет наличие ключа
-func (sr *subscriptionRepository) KeyExists(key string) (bool, error) {
-	config, err := sr.readConfig()
-	if err != nil {
-		return false, fmt.Errorf("ошибка чтения конфигурации: %v", err)
-	}
-
-	trojanInbound, err := sr.findTrojanInbound(config)
+func (sr *SubscriptionRepository) KeyExists(key string) (bool, error) {
+	config, err := sr.loadConfig()
 	if err != nil {
 		return false, err
 	}
 
-	if trojanInbound.TLS == nil || trojanInbound.TLS.Reality == nil {
+	reality, err := sr.findRealityConfig(config)
+	if err != nil {
+		return false, err
+	}
+
+	shortIDInterface, exists := reality["short_id"]
+	if !exists {
 		return false, nil
 	}
 
-	for _, existingKey := range trojanInbound.TLS.Reality.ShortID {
-		if existingKey == key {
+	shortIDs, ok := shortIDInterface.([]interface{})
+	if !ok {
+		return false, fmt.Errorf("short_id is not an array")
+	}
+
+	for _, item := range shortIDs {
+		if itemStr, ok := item.(string); ok && itemStr == key {
 			return true, nil
 		}
 	}
@@ -124,65 +175,33 @@ func (sr *subscriptionRepository) KeyExists(key string) (bool, error) {
 	return false, nil
 }
 
-// GetAllKeys возвращает все shortIds
-func (sr *subscriptionRepository) GetAllKeys() ([]string, error) {
-	config, err := sr.readConfig()
-	if err != nil {
-		return nil, fmt.Errorf("ошибка чтения конфигурации: %v", err)
-	}
-
-	trojanInbound, err := sr.findTrojanInbound(config)
+func (sr *SubscriptionRepository) GetAllKeys() ([]string, error) {
+	config, err := sr.loadConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	if trojanInbound.TLS == nil || trojanInbound.TLS.Reality == nil {
+	reality, err := sr.findRealityConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	shortIDInterface, exists := reality["short_id"]
+	if !exists {
 		return []string{}, nil
 	}
 
-	return trojanInbound.TLS.Reality.ShortID, nil
-}
+	shortIDs, ok := shortIDInterface.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("short_id is not an array")
+	}
 
-// findTrojanInbound находит trojan inbound в конфигурации
-func (sr *subscriptionRepository) findTrojanInbound(config *config.SingBoxConfig) (*config.Inbound, error) {
-	for i := range config.Inbounds {
-		if config.Inbounds[i].Type == "trojan" {
-			return &config.Inbounds[i], nil
+	result := make([]string, 0, len(shortIDs))
+	for _, item := range shortIDs {
+		if itemStr, ok := item.(string); ok {
+			result = append(result, itemStr)
 		}
 	}
-	return nil, fmt.Errorf("trojan inbound не найден в конфигурации")
-}
 
-// readConfig читает и парсит JSON файл sing-box
-func (sr *subscriptionRepository) readConfig() (*config.SingBoxConfig, error) {
-	if _, err := os.Stat(sr.filename); os.IsNotExist(err) {
-		return nil, fmt.Errorf("файл конфигурации не найден: %s", sr.filename)
-	}
-
-	data, err := os.ReadFile(sr.filename)
-	if err != nil {
-		return nil, err
-	}
-
-	var config config.SingBoxConfig
-	if len(data) == 0 {
-		return &config, nil
-	}
-
-	err = json.Unmarshal(data, &config)
-	if err != nil {
-		return nil, fmt.Errorf("ошибка парсинга JSON: %v", err)
-	}
-
-	return &config, nil
-}
-
-// writeConfig записывает конфигурацию в JSON файл sing-box
-func (sr *subscriptionRepository) writeConfig(config *config.SingBoxConfig) error {
-	data, err := json.MarshalIndent(config, "", "  ")
-	if err != nil {
-		return fmt.Errorf("ошибка маршалинга JSON: %v", err)
-	}
-
-	return os.WriteFile(sr.filename, data, 0644)
+	return result, nil
 }
