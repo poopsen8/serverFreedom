@@ -18,7 +18,7 @@ yoomoney:
   base_path: "quickpay/confirm"
   receiver:
     account: "4100116261841562"
-    notification_secret: "1a4zppiNecE4D11LPFJevh/i"
+    notification_secret: "9jfwYMLkU9IgbiEMHi7SbYV4"
 
 
 path:
