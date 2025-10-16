@@ -44,11 +44,19 @@ func writeJSONError(w http.ResponseWriter, status int, message string) {
 
 func (h *SubscriptionHandler) Validator(n *y.Notification) {
 
-	fmt.Println("sklfjsdjklffkjfjkadhjlfkjfh")
-	user_id, _ := h.serv.CheckPayment(n)
+	user_id, err := h.serv.CheckPayment(n)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	values, _ := url.ParseQuery(n.Label)
-	planID, _ := strconv.Atoi(values.Get("plan_id"))
+	values, err2 := url.ParseQuery(n.Label)
+	if err2 != nil {
+		fmt.Println(err2)
+	}
+	planID, err3 := strconv.Atoi(values.Get("plan_id"))
+	if err3 != nil {
+		fmt.Println(err3)
+	}
 
 	h.AddSubscription(user_id, planID)
 
