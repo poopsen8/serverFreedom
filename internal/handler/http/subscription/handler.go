@@ -56,9 +56,8 @@ func (h *SubscriptionHandler) Validator(n *y.Notification) {
 
 func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request) {
 	var sub subscription.FullModel
+	fmt.Printf("r.Body: %v\n", r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&sub); err != nil {
-		fmt.Printf("sub: %v\n", sub)
-		fmt.Printf("err.Error(): %v\n", err.Error())
 		writeJSONError(w, httperr.ErrInvalidJSON.StatusRequest, httperr.ErrInvalidJSON.Err.Error())
 		return
 	}
