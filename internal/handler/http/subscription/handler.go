@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -43,23 +44,32 @@ func writeJSONError(w http.ResponseWriter, status int, message string) {
 }
 
 func (h *SubscriptionHandler) Validator(n *y.Notification) {
-
 	user_id, err := h.serv.CheckPayment(n)
 	if err != nil {
-		fmt.Println(err)
+		log.Printf("Ошибка проверки платежа: %v", err)
+		return
 	}
 
-	values, err2 := url.ParseQuery(n.Label)
-	if err2 != nil {
-		fmt.Println(err2)
-	}
-	planID, err3 := strconv.Atoi(values.Get("plan_id"))
-	if err3 != nil {
-		fmt.Println(err3)
+	values, err := url.ParseQuery(n.Label)
+	if err != nil {
+		log.Printf("Ошибка парсинга Label: %v", err)
+		return
 	}
 
+	planIDStr := values.Get("plan_id")
+	if planIDStr == "" {
+		log.Println("plan_id не найден в метке")
+		return
+	}
+
+	planID, err := strconv.Atoi(planIDStr)
+	if err != nil {
+		log.Printf("Некорректный plan_id: %v", err)
+		return
+	}
+
+	// Добавляем подписку
 	h.AddSubscription(user_id, planID)
-
 }
 
 func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request) {
