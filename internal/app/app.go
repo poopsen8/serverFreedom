@@ -90,7 +90,6 @@ func (a *App) RegisterRoutes(router *mux.Router, cfg *yaml.Config) {
 	router.HandleFunc("/operators", a.OperatorHandler.Operators).Methods("GET") // получить всех операторов
 
 	// --- SUBSCRIPTION ROUTES ---
-	router.HandleFunc("/add-subscription", a.SubscriptionHandler.AddSubscription).Methods("POST") // принимает user_id, plan_id, create_at, expires_at
 	router.HandleFunc("/subscription", a.SubscriptionHandler.Subscription).Methods("GET")         // принимает user_id
 	router.HandleFunc("/update-key-subscription", a.SubscriptionHandler.UpdateKey).Methods("PUT") // принимает user_id
 

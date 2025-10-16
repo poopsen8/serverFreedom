@@ -7,7 +7,7 @@ services:
     depends_on:
       - db
     ports:
-      - "8082:8082"
+      - "1288:1288"
     volumes:
       - ./config:/root/config
       - ./config4.json:/root/config4.json:rw

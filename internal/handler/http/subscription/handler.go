@@ -1,9 +1,11 @@
 package subscription
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -17,10 +19,10 @@ import (
 type service interface {
 	Subscription(id int64) (*subscription.FullModel, error)
 	Subscriptions() ([]*subscription.Model, error)
-	AddSubscription(*subscription.FullModel) (*subscription.FullModel, error)
+	AddSubscription(user_id int64, plan_id int) (*subscription.FullModel, error)
 	UpdateKey(id int64) (string, error)
 	AddPayment(id int64, label string, price int) error
-	CheckPayment(n *y.Notification) error
+	CheckPayment(n *y.Notification) (int64, error)
 }
 
 type SubscriptionHandler struct {
@@ -41,10 +43,16 @@ func writeJSONError(w http.ResponseWriter, status int, message string) {
 }
 
 func (h *SubscriptionHandler) Validator(n *y.Notification) {
-	if err := h.serv.CheckPayment(n); err != nil {
 
-	}
+	user_id, _ := h.serv.CheckPayment(n)
 
+	values, _ := url.ParseQuery(n.Label)
+	planID, _ := strconv.Atoi(values.Get("plan_id"))
+
+	h.AddSubscription(user_id, planID)
+
+	jsonData := []byte(`{"message": "Hello, World!"}`)
+	http.Post(h.rCfg.PathSend.Base_url, "application/json", bytes.NewBuffer(jsonData))
 }
 
 func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +64,7 @@ func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request)
 	}
 
 	p := yoomoney.NewPayment(h.rCfg.Yoomoney)
-	l := fmt.Sprintf("%d%d%d", sub.User_id, sub.Plan.ID, sub.Plan.Duration)
+	l := fmt.Sprintf("user_id=%d&plan_id=%d", sub.User_id, sub.Plan.ID)
 	price := sub.Plan.Price - ((sub.Plan.Price / 100) * sub.Plan.Discount)
 	url, err := p.Build(l, int(price))
 	if err != nil {
@@ -74,54 +82,66 @@ func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func (h *SubscriptionHandler) AddSubscription(w http.ResponseWriter, r *http.Request) {
-	var sub subscription.FullModel
-	if err := json.NewDecoder(r.Body).Decode(&sub); err != nil {
-		fmt.Printf("err.Error(): %v\n", err.Error())
-		writeJSONError(w, httperr.ErrInvalidJSON.StatusRequest, httperr.ErrInvalidJSON.Err.Error())
+func (h *SubscriptionHandler) AddSubscription(user_id int64, plan_id int) {
+	// Вспомогательная функция для отправки ошибок
+	sendError := func(statusCode int, message string) {
+		errorResponse := map[string]interface{}{
+			"error":   true,
+			"status":  statusCode,
+			"message": message,
+		}
+		jsonData, _ := json.Marshal(errorResponse)
+		http.Post(h.rCfg.PathSend.Base_url, "application/json", bytes.NewBuffer(jsonData))
+	}
+
+	if errid := httperr.ValidateUserID(user_id); errid.StatusRequest != 0 {
+		sendError(errid.StatusRequest, errid.Err.Error())
 		return
 	}
 
-	if errid := httperr.ValidateUserID(sub.User_id); errid.StatusRequest != 0 {
-		writeJSONError(w, errid.StatusRequest, errid.Err.Error())
-		return
-	}
-
-	u, err := h.serv.AddSubscription(&sub)
+	sub, err := h.serv.AddSubscription(user_id, plan_id)
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") && strings.Contains(err.Error(), "user") {
-			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("%d user not found", sub.User_id))
+			sendError(http.StatusBadRequest, fmt.Sprintf("%d user not found", user_id))
 			return
 		}
 		if strings.Contains(err.Error(), "no rows in result set") && strings.Contains(err.Error(), "plan") {
-			writeJSONError(w, http.StatusBadRequest, fmt.Sprintf("%d plan not found", sub.Plan.ID))
+			sendError(http.StatusBadRequest, fmt.Sprintf("%d plan not found", plan_id))
 			return
 		}
 
 		if strings.Contains(err.Error(), "operator not found") {
-			writeJSONError(w, http.StatusBadRequest, "operator not found")
+			sendError(http.StatusBadRequest, "operator not found")
 			return
 		}
 
 		if strings.Contains(err.Error(), "error adding subscriber key") {
-			writeJSONError(w, http.StatusInternalServerError, err.Error())
+			sendError(http.StatusInternalServerError, err.Error())
 			return
 		}
 		if strings.Contains(err.Error(), "user permission denied") {
-			writeJSONError(w, http.StatusConflict, fmt.Sprintf(err.Error()+"user_id: %s ", sub.User_id))
+			sendError(http.StatusConflict, fmt.Sprintf(err.Error()+"user_id: %d ", user_id))
 			return
 		}
+
 		fmt.Printf("err.Error(): %v\n", err.Error())
-		writeJSONError(w, 500, err.Error())
+		sendError(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"id":  u.User_id,
-		"key": u.Key,
-	})
+	// Отправка успешного результата
+	u, err := json.Marshal(sub)
+	if err != nil {
+		sendError(http.StatusInternalServerError, "Failed to marshal subscription data")
+		return
+	}
+
+	resp, err := http.Post(h.rCfg.PathSend.Base_url, "application/json", bytes.NewBuffer(u))
+	if err != nil {
+		fmt.Printf("Failed to send subscription data: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
 }
 
 func (h *SubscriptionHandler) UpdateKey(w http.ResponseWriter, r *http.Request) {

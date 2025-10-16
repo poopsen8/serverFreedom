@@ -19,3 +19,7 @@ yoomoney:
   receiver:
     account: "4100116261841562"
     notification_secret: "Kr3E8Gsh4Jh6MYESOGYXAlXs"
+
+
+pach:
+  base_url: "85.142.90.53:8080"

@@ -23,7 +23,7 @@ type repository interface {
 	Delete(id int64) error
 	GetSubscriptionsForCheck() ([]*subscription.Model, error)
 	AddPayment(id int64, label string, price int, date_time time.Time, expires_at time.Time) error
-	CheckPayment(n *yoomoney.Notification) error
+	CheckPayment(n *yoomoney.Notification) (int64, error)
 }
 
 type repositoryFile interface {
@@ -46,17 +46,16 @@ func NewSubscriptionService(repo repository, js repositoryFile, pl plan.PlanServ
 func (s *SubscriptionService) AddPayment(id int64, label string, price int) error {
 
 	date_time := time.Now()
-	expires_at := s.determineTermination(date_time, 15)
+	_, expires_at := s.determineTermination(15)
 	err := s.repo.AddPayment(id, label, price, date_time, expires_at)
 	if err != nil {
 		return err
 	}
 
 	return nil
-
 }
 
-func (s *SubscriptionService) CheckPayment(n *yoomoney.Notification) error {
+func (s *SubscriptionService) CheckPayment(n *yoomoney.Notification) (int64, error) {
 	return s.repo.CheckPayment(n)
 }
 
@@ -136,22 +135,26 @@ func (s *SubscriptionService) UpdateKey(id int64) (string, error) {
 	return key, nil
 }
 
-func (s *SubscriptionService) determineTermination(CreatedAt time.Time, Duration int64) time.Time {
-	Expires_at := CreatedAt
+func (s *SubscriptionService) determineTermination(Duration int64) (time.Time, time.Time) {
+	CreatedAt := time.Now()
+	Expires_at := time.Now()
 	duration := time.Duration(Duration) * time.Minute
 	Expires_at = CreatedAt.Add(duration)
-	return Expires_at
+	return CreatedAt, Expires_at
 }
 
-func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subscription.FullModel, error) {
-	u.Key = s.newKey()
+func (s *SubscriptionService) AddSubscription(user_id int64, plan_id int) (*subscription.FullModel, error) {
+	var sub subscription.FullModel
+	sub.User_id = user_id
+	sub.Plan.ID = int64(plan_id)
+	sub.Key = s.newKey()
 
-	pl, err := s.pl.Plan(int64(u.Plan.ID))
+	pl, err := s.pl.Plan(int64(sub.Plan.ID))
 	if err != nil {
 		return nil, errors.New(err.Error() + "plan")
 	}
 
-	usr, err := s.us.User(u.User_id)
+	usr, err := s.us.User(sub.User_id)
 	if err != nil {
 		return nil, errors.New(err.Error() + "user")
 	}
@@ -165,12 +168,12 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		return nil, err
 	}
 
-	if err := s.js.AddKey(u.Key); err != nil {
+	if err := s.js.AddKey(sub.Key); err != nil {
 		fmt.Printf("err.Error(): %v\n", err.Error())
 		return nil, errors.New("error adding subscriber key")
 	}
 
-	if u.Plan.ID == 0 && !usr.IsTrial { //TODO
+	if sub.Plan.ID == 0 && !usr.IsTrial { //TODO
 		return nil, errors.New("user permission denied")
 	}
 
@@ -178,15 +181,15 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		s.deleteSubscription(sub.User_id, sub.Key)
 	}
 
-	u.Expires_at = s.determineTermination(u.CreateAt, pl.Duration)
-	if err := s.repo.AddSubscription(*u); err != nil {
-		return u, err
+	sub.CreateAt, sub.Expires_at = s.determineTermination(pl.Duration)
+	if err := s.repo.AddSubscription(sub); err != nil {
+		return &sub, err
 	}
 
 	if pl.ID == 0 { //TODO
 		usr.IsTrial = false
-		return u, s.us.Update(*usr)
+		return &sub, s.us.Update(*usr)
 	}
 
-	return u, nil
+	return &sub, nil
 }

@@ -107,30 +107,32 @@ func (r *SubscriptionRepository) Subscriptions() ([]*subscription.Model, error) 
 func (r *SubscriptionRepository) AddPayment(id int64, label string, price int, date_time time.Time, expires_at time.Time) error {
 	query := `INSERT INTO operations (user_id, amount, label, date_time, expires_at,  is_success) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id`
 	return r.db.QueryRow(query, id, price, label, date_time, expires_at).Scan(id)
-
 }
-func (r *SubscriptionRepository) CheckPayment(n *yoomoney.Notification) error {
-	var exists bool
+
+func (r *SubscriptionRepository) CheckPayment(n *yoomoney.Notification) (int64, error) {
+	var userID int64
+
+	// Проверяем существование операции и получаем user_id
 	err := r.db.QueryRow(
-		"SELECT EXISTS(SELECT 1 FROM operations WHERE label = $1)",
+		"SELECT user_id FROM operations WHERE label = $1",
 		n.Label,
-	).Scan(&exists)
+	).Scan(&userID)
 	if err != nil {
-		return err
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("payment with label '%s' not found", n.Label)
+		}
+		return 0, err
 	}
 
-	if !exists {
-		return fmt.Errorf("payment with label '%s' not found", n.Label)
-	}
-
+	// Обновляем статус операции
 	_, err = r.db.Exec(
 		"UPDATE operations SET is_success = $1 WHERE label = $2",
 		true,
 		n.Label,
 	)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return userID, nil
 }

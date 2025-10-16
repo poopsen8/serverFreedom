@@ -3,6 +3,7 @@ package yaml
 type Config struct {
 	Yoomoney *Yoomoney `yaml:"yoomoney" env-required:"true"`
 	Database *DBConfig `yaml:"db"`
+	PathSend *Path     `yaml:"path"`
 }
 
 type DBConfig struct {
@@ -25,4 +26,8 @@ type Yoomoney struct {
 type YoomoneyReceiver struct {
 	Account     string `yaml:"account" env-required:"true"`
 	NotifSecret string `yaml:"notification_secret" env-required:"true"`
+}
+
+type Path struct {
+	Base_url string `yaml:"base_url"`
 }
