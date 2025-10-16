@@ -23,7 +23,7 @@ func main() {
 	application.TaskService.StartPeriodicTasks()
 
 	router := mux.NewRouter()
-	application.RegisterRoutes(router)
+	application.RegisterRoutes(router, cfg)
 
 	addr := ":8082"
 	log.Printf("✅✅✅ Сервер запущен на %s ✅✅✅", addr)

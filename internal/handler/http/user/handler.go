@@ -21,10 +21,10 @@ type service interface {
 
 type UserHandler struct {
 	serv service
-	rCfg yaml.RouteConfig
+	rCfg yaml.Config
 }
 
-func NewUserHandler(s service, rCfg yaml.RouteConfig) *UserHandler {
+func NewUserHandler(s service, rCfg yaml.Config) *UserHandler {
 	return &UserHandler{serv: s, rCfg: rCfg}
 }
 

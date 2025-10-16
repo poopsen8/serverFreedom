@@ -17,10 +17,10 @@ type service interface {
 
 type OperatorHandler struct {
 	serv service
-	rCfg yaml.RouteConfig
+	rCfg yaml.Config
 }
 
-func NewOperatorHandler(s service, rCfg yaml.RouteConfig) *OperatorHandler {
+func NewOperatorHandler(s service, rCfg yaml.Config) *OperatorHandler {
 	return &OperatorHandler{serv: s, rCfg: rCfg}
 }
 

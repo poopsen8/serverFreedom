@@ -17,10 +17,10 @@ type service interface {
 
 type PlanHandler struct {
 	serv service
-	rCfg yaml.RouteConfig
+	rCfg yaml.Config
 }
 
-func NewPlanHandler(s service, rCfg yaml.RouteConfig) *PlanHandler {
+func NewPlanHandler(s service, rCfg yaml.Config) *PlanHandler {
 	return &PlanHandler{serv: s, rCfg: rCfg}
 }
 

@@ -10,6 +10,8 @@ import (
 	httperr "userServer/internal/handler/http"
 	yaml "userServer/internal/model/config/YAML"
 	"userServer/internal/model/subscription"
+	y "userServer/internal/model/yoomoney"
+	"userServer/internal/pkg/payment/yoomoney"
 )
 
 type service interface {
@@ -17,14 +19,16 @@ type service interface {
 	Subscriptions() ([]*subscription.Model, error)
 	AddSubscription(*subscription.FullModel) (*subscription.FullModel, error)
 	UpdateKey(id int64) (string, error)
+	AddPayment(id int64, label string, price int) error
+	CheckPayment(n *y.Notification) error
 }
 
 type SubscriptionHandler struct {
 	serv service
-	rCfg yaml.RouteConfig
+	rCfg yaml.Config
 }
 
-func NewSubscriptionHandler(s service, rCfg yaml.RouteConfig) *SubscriptionHandler {
+func NewSubscriptionHandler(s service, rCfg yaml.Config) *SubscriptionHandler {
 	return &SubscriptionHandler{serv: s, rCfg: rCfg}
 }
 
@@ -33,6 +37,40 @@ func writeJSONError(w http.ResponseWriter, status int, message string) {
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(map[string]string{
 		"message": message,
+	})
+}
+
+func (h *SubscriptionHandler) Validator(n *y.Notification) {
+	if err := h.serv.CheckPayment(n); err != nil {
+
+	}
+
+}
+
+func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request) {
+	var sub subscription.FullModel
+	if err := json.NewDecoder(r.Body).Decode(&sub); err != nil {
+		fmt.Printf("err.Error(): %v\n", err.Error())
+		writeJSONError(w, httperr.ErrInvalidJSON.StatusRequest, httperr.ErrInvalidJSON.Err.Error())
+		return
+	}
+
+	p := yoomoney.NewPayment(h.rCfg.Yoomoney)
+	l := fmt.Sprintf("%d%d%d", sub.User_id, sub.Plan.ID, sub.Plan.Duration)
+	price := sub.Plan.Price - ((sub.Plan.Price / 100) * sub.Plan.Discount)
+	url, err := p.Build(l, int(price))
+	if err != nil {
+		return
+	}
+
+	if err := h.serv.AddPayment(sub.User_id, l, int(price)); err != nil {
+		writeJSONError(w, http.StatusInternalServerError, err.Error())
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"url": url,
 	})
 }
 

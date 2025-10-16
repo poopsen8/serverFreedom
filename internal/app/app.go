@@ -10,6 +10,7 @@ import (
 	handlerSubscription "userServer/internal/handler/http/subscription"
 	handlerUser "userServer/internal/handler/http/user"
 	yaml "userServer/internal/model/config/YAML"
+	"userServer/internal/pkg/payment/yoomoney"
 	repoJSONSubscription "userServer/internal/repository/json/subscription"
 	repoOperator "userServer/internal/repository/postgres/operetor"
 	repoPlan "userServer/internal/repository/postgres/plan"
@@ -32,8 +33,8 @@ type App struct {
 	TaskService         *background.TaskService
 }
 
-func New(cfg *yaml.RouteConfig) (*App, error) {
-	database, err := db.NewPostgres(&cfg.DB)
+func New(cfg *yaml.Config) (*App, error) {
+	database, err := db.NewPostgres(cfg.Database)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +43,7 @@ func New(cfg *yaml.RouteConfig) (*App, error) {
 	userRepo := repoUser.NewUserRepository(database)
 	planRepo := repoPlan.NewPlanRepository(database)
 	subscriptionRepo := repoSubscription.NewSubscriptionRepository(database)
-	subscriptionRepo2 := repoJSONSubscription.NewSubscriptionRepository(cfg.DB.Pathconfig)
+	subscriptionRepo2 := repoJSONSubscription.NewSubscriptionRepository(cfg.Database.Pathconfig)
 
 	operatorService := serviceOperator.NewOperatorService(operatorRepo)
 	planService := servicePlan.NewPlanService(planRepo)
@@ -72,7 +73,7 @@ func New(cfg *yaml.RouteConfig) (*App, error) {
 	}, nil
 }
 
-func (a *App) RegisterRoutes(router *mux.Router) {
+func (a *App) RegisterRoutes(router *mux.Router, cfg *yaml.Config) {
 	// --- USER ROUTES ---
 	router.HandleFunc("/register-user", a.UserHandler.Create).Methods("POST") // принимает id, username
 	router.HandleFunc("/update-user", a.UserHandler.Update).Methods("PUT")    // принимает одно значение на изменение и id пользователя - MobileOperatorID, IsTrial
@@ -94,6 +95,9 @@ func (a *App) RegisterRoutes(router *mux.Router) {
 	router.HandleFunc("/update-key-subscription", a.SubscriptionHandler.UpdateKey).Methods("PUT") // принимает user_id
 
 	router.HandleFunc("/subscriptions", a.SubscriptionHandler.Subscriptions).Methods("GET") // принимает user_id
+	router.HandleFunc("/get-payment", a.SubscriptionHandler.GetPayment).Methods("GET")      // принимает user_id
+
+	router.Handle("/payment/yoomoney", yoomoney.PaymentHandler(cfg.Yoomoney, a.SubscriptionHandler.Validator))
 
 }
 

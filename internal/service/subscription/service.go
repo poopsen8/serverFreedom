@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 	"userServer/internal/model/subscription"
+	"userServer/internal/model/yoomoney"
 
 	"userServer/internal/service/operetor"
 	"userServer/internal/service/plan"
@@ -21,6 +22,8 @@ type repository interface {
 	UpdateKey(id int64, key string) error
 	Delete(id int64) error
 	GetSubscriptionsForCheck() ([]*subscription.Model, error)
+	AddPayment(id int64, label string, price int, date_time time.Time, expires_at time.Time) error
+	CheckPayment(n *yoomoney.Notification) error
 }
 
 type repositoryFile interface {
@@ -39,6 +42,21 @@ type SubscriptionService struct {
 func NewSubscriptionService(repo repository, js repositoryFile, pl plan.PlanService, us user.UserService, os operetor.OperetorService) *SubscriptionService {
 	return &SubscriptionService{repo: repo, pl: pl, js: js, us: us, os: os}
 }
+
+func (s *SubscriptionService) AddPayment(id int64, label string, price int) error {
+
+	date_time := time.Now()
+	expires_at := s.determineTermination(date_time, 15)
+	err := s.repo.AddPayment(id, label, price, date_time, expires_at)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func (s *SubscriptionService) CheckPayment(n *yoomoney.Notification) error
 
 func (s *SubscriptionService) Subscription(id int64) (*subscription.FullModel, error) {
 	sub, errS := s.repo.Subscription(id) // TODO

@@ -29,15 +29,13 @@ type Inbound struct {
 	Listen                   string `json:"listen"`
 	ListenPort               int    `json:"listen_port"`
 	Network                  string `json:"network,omitempty"`
+	OverrideAddress          string `json:"override_address,omitempty"`
+	OverridePort             int    `json:"override_port,omitempty"`
 	Sniff                    bool   `json:"sniff,omitempty"`
 	SniffOverrideDestination bool   `json:"sniff_override_destination,omitempty"`
 	DomainStrategy           string `json:"domain_strategy,omitempty"`
-	OverrideAddress          string `json:"override_address,omitempty"`
-	OverridePort             int    `json:"override_port,omitempty"`
-
-	// Trojan-specific
-	Users []User `json:"users,omitempty"`
-	TLS   *TLS   `json:"tls,omitempty"`
+	Users                    []User `json:"users,omitempty"`
+	TLS                      *TLS   `json:"tls,omitempty"`
 }
 
 type User struct {
@@ -49,7 +47,7 @@ type TLS struct {
 	Enabled    bool     `json:"enabled"`
 	ServerName string   `json:"server_name"`
 	ALPN       []string `json:"alpn"`
-	Reality    *Reality `json:"reality"`
+	Reality    *Reality `json:"reality,omitempty"`
 }
 
 type Reality struct {

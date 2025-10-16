@@ -2,8 +2,11 @@ package subscription
 
 import (
 	"database/sql"
+	"fmt"
+	"time"
 	"userServer/internal/model/plan"
 	"userServer/internal/model/subscription"
+	"userServer/internal/model/yoomoney"
 
 	_ "github.com/lib/pq"
 )
@@ -99,4 +102,35 @@ func (r *SubscriptionRepository) Subscriptions() ([]*subscription.Model, error) 
 	}
 
 	return subscriptions, nil
+}
+
+func (r *SubscriptionRepository) AddPayment(id int64, label string, price int, date_time time.Time, expires_at time.Time) error {
+	query := `INSERT INTO operations (user_id, amount, label, date_time, expires_at,  is_success) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id`
+	return r.db.QueryRow(query, id, price, label, date_time, expires_at).Scan(id)
+
+}
+func (r *SubscriptionRepository) CheckPayment(n *yoomoney.Notification) error {
+	var exists bool
+	err := r.db.QueryRow(
+		"SELECT EXISTS(SELECT 1 FROM operations WHERE label = $1)",
+		n.Label,
+	).Scan(&exists)
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return fmt.Errorf("payment with label '%s' not found", n.Label)
+	}
+
+	_, err = r.db.Exec(
+		"UPDATE operations SET is_success = $1 WHERE label = $2",
+		true,
+		n.Label,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

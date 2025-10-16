@@ -12,4 +12,10 @@ db:
   pathconfig: "config4.json"
 
 
- 
+
+yoomoney:
+  base_url: "yoomoney.ru"
+  base_path: "quickpay/confirm"
+  receiver:
+    account: "4100116261841562"
+    notification_secret: "Kr3E8Gsh4Jh6MYESOGYXAlXs"
