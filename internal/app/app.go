@@ -94,9 +94,9 @@ func (a *App) RegisterRoutes(router *mux.Router, cfg *yaml.Config) {
 	router.HandleFunc("/update-key-subscription", a.SubscriptionHandler.UpdateKey).Methods("PUT") // принимает user_id
 
 	router.HandleFunc("/subscriptions", a.SubscriptionHandler.Subscriptions).Methods("GET") // принимает user_id
-	router.HandleFunc("/get-payment", a.SubscriptionHandler.GetPayment).Methods("GET")      // принимает user_id
 
 	router.Handle("/payment/yoomoney", yoomoney.PaymentHandler(cfg.Yoomoney, a.SubscriptionHandler.Validator))
+	router.HandleFunc("/payment", a.SubscriptionHandler.GetPayment).Methods("GET") // принимает user_id
 
 }
 
