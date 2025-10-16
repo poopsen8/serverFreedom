@@ -51,8 +51,6 @@ func (h *SubscriptionHandler) Validator(n *y.Notification) {
 
 	h.AddSubscription(user_id, planID)
 
-	jsonData := []byte(`{"message": "Hello, World!"}`)
-	http.Post(h.rCfg.PathSend.Base_url, "application/json", bytes.NewBuffer(jsonData))
 }
 
 func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request) {
@@ -66,10 +64,7 @@ func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request)
 	p := yoomoney.NewPayment(h.rCfg.Yoomoney)
 	l := fmt.Sprintf("user_id=%d&plan_id=%d", sub.User_id, sub.Plan.ID)
 	price := sub.Plan.Price - ((sub.Plan.Price / 100) * sub.Plan.Discount)
-	url, err := p.Build(l, int(price))
-	if err != nil {
-		return
-	}
+	url, _ := p.Build(l, int(price))
 
 	if err := h.serv.AddPayment(sub.User_id, l, int(price)); err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
