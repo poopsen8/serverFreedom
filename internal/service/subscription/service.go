@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"time"
+	pl "userServer/internal/model/plan"
 	"userServer/internal/model/subscription"
 	"userServer/internal/model/yoomoney"
 
@@ -137,16 +138,15 @@ func (s *SubscriptionService) UpdateKey(id int64) (string, error) {
 
 func (s *SubscriptionService) determineTermination(Duration int64) (time.Time, time.Time) {
 	CreatedAt := time.Now()
-	Expires_at := time.Now()
 	duration := time.Duration(Duration) * time.Minute
-	Expires_at = CreatedAt.Add(duration)
+	Expires_at := CreatedAt.Add(duration)
 	return CreatedAt, Expires_at
 }
 
 func (s *SubscriptionService) AddSubscription(user_id int64, plan_id int) (*subscription.FullModel, error) {
 	var sub subscription.FullModel
 	sub.User_id = user_id
-	sub.Plan.ID = int64(plan_id)
+	sub.Plan = &pl.Model{ID: int64(plan_id)}
 	sub.Key = s.newKey()
 
 	pl, err := s.pl.Plan(int64(sub.Plan.ID))
