@@ -23,7 +23,9 @@ func PaymentHandler(cfg *config.Yoomoney, validator func(n *yoomoney.Notificatio
 			return
 		}
 
-		fmt.Println(cfg)
+		fmt.Println(cfg.Receiver.Account)
+		fmt.Println(cfg.Receiver.NotifSecret)
+
 		isValid, err := VerifySignature(r, cfg.Receiver.NotifSecret)
 		if err != nil {
 			http.Error(w, "Error verifying signature", http.StatusInternalServerError)
