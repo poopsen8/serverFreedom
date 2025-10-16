@@ -170,7 +170,7 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		return nil, errors.New("error adding subscriber key")
 	}
 
-	if u.Plan.ID == 15 && !usr.IsTrial { //TODO
+	if u.Plan.ID == 0 && !usr.IsTrial { //TODO
 		return nil, errors.New("user permission denied")
 	}
 
@@ -183,7 +183,7 @@ func (s *SubscriptionService) AddSubscription(u *subscription.FullModel) (*subsc
 		return u, err
 	}
 
-	if pl.ID == 15 { //TODO
+	if pl.ID == 0 { //TODO
 		usr.IsTrial = false
 		return u, s.us.Update(*usr)
 	}
