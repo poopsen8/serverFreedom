@@ -105,8 +105,17 @@ func (r *SubscriptionRepository) Subscriptions() ([]*subscription.Model, error) 
 }
 
 func (r *SubscriptionRepository) AddPayment(id int64, label string, price int, date_time time.Time, expires_at time.Time) error {
-	query := `INSERT INTO operations (user_id, amount, label, date_time, expires_at,  is_success) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id`
-	return r.db.QueryRow(query, id, price, label, date_time, expires_at).Scan(id)
+	query := `
+        INSERT INTO operations (label, user_id, amount, date_time, expires_at, is_success)
+        VALUES ($1, $2, $3, $4, $5, $6)
+    `
+
+	_, err := r.db.Exec(query, label, id, price, date_time, expires_at, false)
+	if err != nil {
+		return fmt.Errorf("failed to insert operation: %w", err)
+	}
+
+	return nil
 }
 
 func (r *SubscriptionRepository) CheckPayment(n *yoomoney.Notification) (int64, error) {
