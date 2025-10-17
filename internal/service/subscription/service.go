@@ -168,7 +168,7 @@ func (s *SubscriptionService) AddSubscription(user_id int64, plan_id int) (*subs
 		return nil, err
 	}
 
-	if sub.Plan.ID == 0 && !usr.IsTrial { //TODO
+	if sub.Plan.ID == 1 && !usr.IsTrial { //TODO
 		return nil, errors.New("user permission denied")
 	}
 
@@ -185,7 +185,7 @@ func (s *SubscriptionService) AddSubscription(user_id int64, plan_id int) (*subs
 		fmt.Printf("err.Error(): %v\n", err.Error())
 		return nil, errors.New("error adding subscriber key")
 	}
-	if pl.ID == 0 { //TODO
+	if pl.ID == 1 { //TODO
 		usr.IsTrial = false
 		return &sub, s.us.Update(*usr)
 	}
