@@ -1,6 +1,7 @@
 package plan
 
 import (
+	"sort"
 	"userServer/internal/model/plan"
 )
 
@@ -22,5 +23,15 @@ func (s *PlanService) Plan(id int64) (*plan.Model, error) {
 }
 
 func (s *PlanService) Plans() ([]*plan.Model, error) {
-	return s.repo.Plans()
+	plans, err := s.repo.Plans()
+	if err != nil {
+		return nil, err
+	}
+
+	// Сортировка по возрастанию Duration
+	sort.Slice(plans, func(i, j int) bool {
+		return plans[i].Duration < plans[j].Duration
+	})
+
+	return plans, nil
 }
