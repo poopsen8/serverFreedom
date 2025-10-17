@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	httperr "userServer/internal/handler/http"
 	yaml "userServer/internal/model/config/YAML"
@@ -81,7 +82,10 @@ func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request)
 	}
 
 	p := yoomoney.NewPayment(h.rCfg.Yoomoney)
-	l := fmt.Sprintf("user_id=%d&plan_id=%d", sub.User_id, sub.Plan.ID)
+	l := fmt.Sprintf("%suser_id=%d&plan_id=%d",
+		time.Now().Format("2006-01-02 15:04:05"),
+		sub.User_id,
+		sub.Plan.ID)
 	price := sub.Plan.Price - ((sub.Plan.Price / 100) * sub.Plan.Discount)
 	url, _ := p.Build(l, int(price))
 
