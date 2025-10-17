@@ -24,6 +24,7 @@ yoomoney:
 path:
   base_url: "https://widegrid.site/bot/payment" 
 
+
 connection_link:
-  left_part: "vless://80d50277-7668-4eb8-a3f7-2bcf8ba322d2@194.33.61.221:443?security=reality&encryption=none&alpn=h2%2Chttp%2F1.1&flow=xtls-rprx-vision&fp=chrome&pbk=yz5xhUPJjApMBRLa-Dw2OKVe4-ckCXNjv17HDjo5tnI&sni=st.max.ru&spx=%2F&type=tcp&sid="
+  left_part: "vless://80d50277-7668-4eb8-a3f7-2bcf8ba322d2@194.33.61.221:443?security=reality&encryption=none&alpn=h2%2Chttp%2F1.1&flow=xtls-rprx-vision&fp=chrome&pbk=yz5xhUPJjApMBRLa-Dw2OKVe4-ckCXNjv17HDjo5tnI&sni=cs7777.vk.com&spx=%2F&type=tcp&sid="
   right_part: "#WideGrid"
