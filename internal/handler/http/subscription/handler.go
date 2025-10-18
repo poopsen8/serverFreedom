@@ -86,7 +86,8 @@ func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request)
 		time.Now().Format("2006-01-02 15:04:05"),
 		sub.User_id,
 		sub.Plan.ID)
-	price := sub.Plan.Price - ((sub.Plan.Price / 100) * sub.Plan.Discount)
+
+	price := sub.Plan.Price - (sub.Plan.Price*sub.Plan.Discount)/100
 	url, _ := p.Build(l, int(price))
 
 	h.serv.AddPayment(sub.User_id, l, int(price))
