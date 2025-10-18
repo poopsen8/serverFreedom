@@ -104,7 +104,7 @@ func (r *SubscriptionRepository) Subscriptions() ([]*subscription.Model, error) 
 	return subscriptions, nil
 }
 
-func (r *SubscriptionRepository) AddPayment(id int64, label string, price int, date_time time.Time, expires_at time.Time) error {
+func (r *SubscriptionRepository) AddPayment(id int64, label string, price float64, date_time time.Time, expires_at time.Time) error {
 	query := `
         INSERT INTO operations (label, user_id, amount, date_time, expires_at, is_success)
         VALUES ($1, $2, $3, $4, $5, $6)

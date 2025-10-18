@@ -29,7 +29,7 @@ func NewPayment(cfg *config.Yoomoney) *Payment {
 	}
 }
 
-func (p *Payment) Build(label string, sum int) (string, error) {
+func (p *Payment) Build(label string, sum float64) (string, error) {
 	if len(label) <= 0 {
 		return "", fmt.Errorf("empty label")
 	}
@@ -50,6 +50,6 @@ func (p *Payment) Build(label string, sum int) (string, error) {
 	return p.String() + "?" + v.Encode(), nil
 }
 
-func calculateCommission(sum int) float64 {
+func calculateCommission(sum float64) float64 {
 	return float64(sum) * (1 + quickpayCommission)
 }

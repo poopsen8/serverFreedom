@@ -23,7 +23,7 @@ type repository interface {
 	UpdateKey(id int64, key string) error
 	Delete(id int64) error
 	GetSubscriptionsForCheck() ([]*subscription.Model, error)
-	AddPayment(id int64, label string, price int, date_time time.Time, expires_at time.Time) error
+	AddPayment(id int64, label string, price float64, date_time time.Time, expires_at time.Time) error
 	CheckPayment(n *yoomoney.Notification) (int64, error)
 }
 
@@ -44,7 +44,7 @@ func NewSubscriptionService(repo repository, js repositoryFile, pl plan.PlanServ
 	return &SubscriptionService{repo: repo, pl: pl, js: js, us: us, os: os}
 }
 
-func (s *SubscriptionService) AddPayment(id int64, label string, price int) error {
+func (s *SubscriptionService) AddPayment(id int64, label string, price float64) error {
 
 	date_time := time.Now()
 	_, expires_at := s.determineTermination(15)

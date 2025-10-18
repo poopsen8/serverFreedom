@@ -23,7 +23,7 @@ type service interface {
 	Subscriptions() ([]*subscription.Model, error)
 	AddSubscription(user_id int64, plan_id int) (*subscription.FullModel, error)
 	UpdateKey(id int64) (string, error)
-	AddPayment(id int64, label string, price int) error
+	AddPayment(id int64, label string, price float64) error
 	CheckPayment(n *y.Notification) (int64, error)
 }
 
@@ -88,9 +88,9 @@ func (h *SubscriptionHandler) GetPayment(w http.ResponseWriter, r *http.Request)
 		sub.Plan.ID)
 
 	price := sub.Plan.Price - (sub.Plan.Price*sub.Plan.Discount)/100
-	url, _ := p.Build(l, int(price))
+	url, _ := p.Build(l, price)
 
-	h.serv.AddPayment(sub.User_id, l, int(price))
+	h.serv.AddPayment(sub.User_id, l, price)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
